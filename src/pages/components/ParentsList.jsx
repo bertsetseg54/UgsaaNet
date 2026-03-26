@@ -28,7 +28,6 @@ const ParentsList = ({ data }) => {
 
   return (
     <section className="w-full p-6">
-      <h2>Өвөг дээдэс</h2>
       <div className="flex flex-row items-start gap-2 overflow-x-auto pb-4 no-scrollbar snap-x">
         {data.map((person, index) => {
           const isMale = person.gender === "male";

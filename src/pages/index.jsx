@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-// LandingPage нь src/pages/components/ дотор байгаа бол:
 import LandingPage from './components/LandingPage'; 
 import Start from './components/Start';
-// Start нь src/pages/ дотор байгаа бол:
 
 
 export default function Home() {
