@@ -1,11 +1,31 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Link from "next/link";
+import {
+  Fingerprint,
+  Search,
+  X,
+  Home,
+  BookOpen,
+  Plus,
+  LogOut,
+  Trash2,
+  Edit3,
+  Image as ImageIcon,
+  ChevronLeft,
+  ArrowRight,
+  AlertCircle,
+  CheckCircle2,
+  ChevronDown,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Story() {
   const [stories, setStories] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isSubmitLoading, setIsSubmitLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     date: "",
@@ -13,31 +33,63 @@ export default function Story() {
   });
   const [file, setFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(""); // Алдааг зассан хэсэг
   const [sortOrder, setSortOrder] = useState("desc");
   const [editingStory, setEditingStory] = useState(null);
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedStory, setSelectedStory] = useState({ id: null, title: "" });
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    fetchStories();
-  }, []);
+  const router = useRouter();
+  const openDeleteModal = (id, title) => {
+    setSelectedStory({ id, title }); // Устгах түүхийн мэдээллийг хадгалах
+    setIsDeleteModalOpen(true); // Модалийг харуулах
+  };
+  // Мэдэгдэл харуулах функц
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(
+      () => setToast({ show: false, message: "", type: "success" }),
+      3000
+    );
+  };
 
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
+    setIsPageLoading(true);
     try {
       const res = await fetch("/api/stories");
       const data = await res.json();
       setStories(Array.isArray(data) ? data : []);
-    } catch {
+    } catch (err) {
+      console.error("Fetch error:", err);
       setStories([]);
+    } finally {
+      setIsPageLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      if (selectedFile.size > 5 * 1024 * 1024)
+        return showToast("Файлын хэмжээ 5MB-аас бага байх ёстой", "error");
       setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onloadend = () => setImagePreview(reader.result);
-      reader.readAsDataURL(selectedFile);
+      setImagePreview(URL.createObjectURL(selectedFile));
     }
   };
 
@@ -49,19 +101,27 @@ export default function Story() {
     setImagePreview(null);
   };
 
-  const handleSubmit = async () => {
-    if (!formData.title || !formData.date || !formData.content)
-      return alert("Мэдээллээ бүрэн бөглөнө үү");
+  const handleLogout = () => {
+    localStorage.clear();
+    router.push("/start");
+  };
 
-    setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { title, date, content } = formData;
+    if (!title || !date || !content)
+      return showToast("Мэдээллээ бүрэн бөглөнө үү", "error");
+
+    setIsSubmitLoading(true);
     try {
       let imageUrl = editingStory?.image || "";
+
       if (file) {
-        const data = new FormData();
-        data.append("file", file);
+        const uploadData = new FormData();
+        uploadData.append("file", file);
         const uploadRes = await fetch("/api/upload", {
           method: "POST",
-          body: data,
+          body: uploadData,
         });
         const uploadJson = await uploadRes.json();
         imageUrl = uploadJson.url;
@@ -72,18 +132,23 @@ export default function Story() {
         ? `/api/stories/${editingStory._id}`
         : `/api/stories`;
 
-      await fetch(url, {
+      const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...formData, image: imageUrl }),
       });
 
-      closeModal();
-      fetchStories();
-    } catch {
-      alert("Алдаа гарлаа");
+      if (response.ok) {
+        closeModal();
+        fetchStories();
+        showToast(
+          editingStory ? "Амжилттай шинэчиллээ" : "Шинэ дурсамж нэмэгдлээ"
+        );
+      }
+    } catch (err) {
+      showToast("Сервертэй холбогдоход алдаа гарлаа", "error");
     } finally {
-      setLoading(false);
+      setIsSubmitLoading(false);
     }
   };
 
@@ -98,300 +163,504 @@ export default function Story() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Устгахдаа итгэлтэй байна уу?")) return;
+  const handleDelete = async () => {
+    if (!selectedStory.id) return;
+
+    setIsDeleting(true); // Loading эхлүүлэх
     try {
-      await fetch(`/api/stories/${id}`, { method: "DELETE" });
-      fetchStories();
-    } catch {
-      alert("Устгах үед алдаа гарлаа");
+      const res = await fetch(`/api/stories/${selectedStory.id}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        // Жагсаалтаас хасах
+        setStories((prev) => prev.filter((s) => s._id !== selectedStory.id));
+        showToast("Дурсамж амжилттай устлаа");
+        setIsDeleteModalOpen(false); // Амжилттай болвол модалийг хаах
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      showToast("Устгах үед алдаа гарлаа", "error");
+    } finally {
+      setIsDeleting(false); // Loading зогсоох
     }
   };
 
-  const processedStories = useMemo(() => {
-    let filtered = [...stories];
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(
+  const filteredStories = useMemo(() => {
+    return stories
+      .filter(
         (s) =>
-          s.title.toLowerCase().includes(q) || s.date.toString().includes(q)
-      );
-    }
-    filtered.sort((a, b) =>
-      sortOrder === "desc"
-        ? new Date(b.date) - new Date(a.date)
-        : new Date(a.date) - new Date(b.date)
-    );
-    return filtered;
+          s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.date.toString().includes(searchQuery)
+      )
+      .sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+      });
   }, [stories, searchQuery, sortOrder]);
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 pb-20">
-      {/* NAVIGATION */}
-      <nav className="bg-white/70 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center gap-6">
-          <div className="flex shrink-0 w-full md:w-auto justify-between items-center">
-            <Link
-              href="/landingPage"
-              className="text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-700 transition-all"
-            >
-              ← Нүүр
-            </Link>
-            <h1 className="md:hidden text-lg font-black uppercase italic tracking-tighter">
-              Цадиг <span className="text-indigo-600">Тууж</span>
-            </h1>
+    <div className="min-h-screen bg-[#FBFBFC] text-slate-900 pb-32 relative">
+      {/* --- TOAST NOTIFICATION --- */}
+      {toast.show && (
+        <div
+          className={`fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+            toast.type === "error"
+              ? "bg-red-50/90 border-red-100 text-red-600"
+              : "bg-emerald-50/90 border-emerald-100 text-emerald-600"
+          }`}
+        >
+          {toast.type === "error" ? (
+            <AlertCircle size={20} />
+          ) : (
+            <CheckCircle2 size={20} />
+          )}
+          <span className="text-xs font-black uppercase tracking-widest">
+            {toast.message}
+          </span>
+        </div>
+      )}
+
+      {/* --- HEADER --- */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100">
+        <div className="max-w-6xl mx-auto px-6 md:px-8 py-3 flex items-center justify-between gap-4 md:gap-10">
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+              <Fingerprint size={20} className="text-white" />
+            </div>
+            <span className="hidden md:block font-black text-sm uppercase tracking-tighter">
+              Ургийн Хэлхээ
+            </span>
+          </Link>
+
+          <div className="flex-1 max-w-md relative">
+            <Search
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              type="text"
+              placeholder="Дурсамж хайх..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-slate-100/50 border-none rounded-2xl py-2.5 pl-12 pr-10 text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
+            />
           </div>
 
-          <div className="flex flex-1 flex-col sm:flex-row items-center gap-3 w-full">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Огноо эсвэл гарчиг хайх..."
-                className="w-full px-6 py-4 bg-slate-100/80 rounded-2xl text-sm font-bold outline-none border-2 border-transparent focus:bg-white focus:border-indigo-500/20 transition-all shadow-inner"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <div className="flex gap-3 shrink-0 w-full sm:w-auto">
-              <select
-                className="flex-1 sm:w-40 px-5 py-4 bg-slate-100/80 rounded-2xl text-[10px] font-black uppercase cursor-pointer outline-none border-2 border-transparent"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-              >
-                <option value="desc">Шинэ нь эхэнд</option>
-                <option value="asc">Хуучин нь эхэнд</option>
-              </select>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex-1 sm:w-40 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 transition-all"
-              >
-                + Нэмэх
-              </button>
-            </div>
+          <div className="flex items-center gap-3 md:gap-6">
+            {/* НҮҮР ХУУДАСНЫ ХОЛБООС (Буцааж нэмэв) */}
+            <Link
+              href="/"
+              className="hidden lg:block text-[11px] font-black uppercase text-slate-400 hover:text-indigo-600 transition-colors tracking-widest"
+            >
+              Нүүр
+            </Link>
+
+            {/* Зааглагч зураас - Зөвхөн компьютер дээр харагдана */}
+            <div className="h-4 w-px bg-slate-200 hidden lg:block" />
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="hidden md:flex items-center bg-slate-900 text-white px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase transition-all hover:bg-slate-800 tracking-widest"
+            >
+              + Түүх нэмэх
+            </button>
+
+            {/* ГАРАХ ТОВЧ */}
+            <button
+              onClick={handleLogout}
+              className="p-2 text-slate-400 hover:text-red-500 transition-colors active:scale-90"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
+        </div>
+      </header>
+
+      {/* --- MOBILE NAV --- */}
+      <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px]">
+        <div className="bg-white/80 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] p-1.5 shadow-2xl flex items-center justify-between">
+          <Link href="/" className="p-4 text-slate-400">
+            <Home size={22} />
+          </Link>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="group flex items-center gap-2 bg-slate-900 text-white px-6 py-3.5 rounded-[1.8rem]shadow-lg shadow-slate-200/50 hover:bg-slate-800 transition-all active:scale-95 shrink-0"
+          >
+            <Plus size={16} strokeWidth={3} />
+            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+              Түүх нэмэх
+            </span>
+          </button>
+          <Link href="/story" className="p-4 text-indigo-600">
+            <BookOpen size={22} />
+          </Link>
         </div>
       </nav>
 
-      {/* GRID CARDS */}
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {processedStories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-            {processedStories.map((s) => (
-              <div
-                key={s._id}
-                className="relative group bg-white rounded-[2.5rem] p-3 border border-slate-100 shadow-sm hover:shadow-2xl transition-all flex flex-col h-full"
-              >
-                {/* ACTION BUTTONS (Visible on Hover) */}
-                <div className="absolute top-6 right-6 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+      <main className="max-w-6xl mx-auto px-4 md:px-6 pt-24 md:pt-32 pb-32">
+        {/* --- SIMPLE HEADER --- */}
+        <div className="flex items-center justify-between mb-10 border-b border-slate-100 pb-6">
+          <button
+            onClick={() => router.back()}
+            className="p-2 -ml-2 text-slate-400 hover:text-indigo-600 transition-all active:scale-75 flex items-center justify-center"
+            aria-label="Буцах"
+          >
+            <ChevronLeft
+              size={22}
+              strokeWidth={2.5}
+              className="group-hover:-translate-x-1 transition-transform duration-300"
+            />
+          </button>
+          <h1 className="text-xl font-[1000] uppercase tracking-tighter text-slate-900">
+            Цадиг <span className="text-indigo-600">Тууж</span>
+          </h1>
+          <div className="relative min-w-[160px]">
+            {/* Trigger Button */}
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="w-full flex items-center justify-between bg-white border border-slate-200 text-[10px] font-black uppercase tracking-widest rounded-2xl px-5 py-3 shadow-sm hover:border-indigo-300 transition-all"
+            >
+              <span>
+                {sortOrder === "desc" ? "Шинэ нь эхэнд" : "Хуучин нь эхэнд"}
+              </span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform duration-300 ${
+                  isOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {/* Custom Menu */}
+            {isOpen && (
+              <>
+                {/* Арын хэсэгт дарахад хаагдана */}
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setIsOpen(false)}
+                />
+
+                <div className="absolute right-0 mt-2 w-full bg-white border border-slate-100 rounded-[1.5rem] shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleEdit(s);
+                    onClick={() => {
+                      setSortOrder("desc");
+                      setIsOpen(false);
                     }}
-                    className="p-3 bg-white/90 backdrop-blur-md text-indigo-600 rounded-2xl shadow-lg hover:bg-indigo-600 hover:text-white transition-all active:scale-90"
+                    className={`w-full text-left px-5 py-4 text-[11px] font-bold uppercase tracking-wider transition-colors ${
+                      sortOrder === "desc"
+                        ? "bg-indigo-50 text-indigo-600"
+                        : "text-slate-600 hover:bg-slate-50"
+                    }`}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                      />
-                    </svg>
+                    Шинэ нь эхэнд
                   </button>
+                  <div className="h-px bg-slate-50 mx-4" />
                   <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleDelete(s._id);
+                    onClick={() => {
+                      setSortOrder("asc");
+                      setIsOpen(false);
                     }}
-                    className="p-3 bg-white/90 backdrop-blur-md text-red-500 rounded-2xl shadow-lg hover:bg-red-500 hover:text-white transition-all active:scale-90"
+                    className={`w-full text-left px-5 py-4 text-[11px] font-bold uppercase tracking-wider transition-colors ${
+                      sortOrder === "asc"
+                        ? "bg-indigo-50 text-indigo-600"
+                        : "text-slate-600 hover:bg-slate-50"
+                    }`}
                   >
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
+                    Хуучин нь эхэнд
                   </button>
                 </div>
+              </>
+            )}
+          </div>
+        </div>
 
-                <Link href={`/story/${s._id}`} className="flex flex-col h-full">
-                  <div className="h-60 w-full rounded-4xl overflow-hidden relative mb-6">
-                    {s.image ? (
-                      <img
-                        src={s.image}
-                        alt=""
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200 font-black text-[10px] tracking-widest uppercase italic">
-                        Memory
-                      </div>
-                    )}
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl text-[10px] font-black text-indigo-600 shadow-sm">
+        {/* --- CONTENT GRID --- */}
+        {isPageLoading ? (
+          <div className="py-20 text-center animate-pulse text-[10px] font-black text-slate-300 uppercase tracking-widest">
+            Уншиж байна...
+          </div>
+        ) : filteredStories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {filteredStories.map((s) => (
+              <div
+                key={s._id}
+                className="group bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden"
+              >
+                {/* 1. Image Section (Дээд талд нь) */}
+                <div className="h-64 relative overflow-hidden bg-slate-50">
+                  {s.image ? (
+                    <img
+                      src={s.image}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      alt={s.title}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-200">
+                      <ImageIcon size={40} strokeWidth={1.5} />
+                    </div>
+                  )}
+                  {/* Огноог зураг дээр нь Badge болгож тавив */}
+                  <div className="absolute top-5 left-5 px-4 py-1.5 bg-white/90 backdrop-blur-md rounded-full shadow-sm">
+                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">
                       {s.date}
-                    </div>
+                    </span>
                   </div>
+                </div>
 
-                  <div className="px-4 pb-6 flex flex-col flex-1">
-                    <h2 className="text-xl font-black text-slate-800 mb-3 leading-tight line-clamp-2 group-hover:text-indigo-600 transition-colors">
-                      {s.title}
-                    </h2>
-                    <p className="text-slate-500 text-sm leading-relaxed line-clamp-3 font-medium italic border-l-2 border-indigo-50 pl-4 mb-6">
-                      "{s.content}"
-                    </p>
-                    <div className="mt-auto flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:gap-4 transition-all">
-                      Дэлгэрэнгүй <span>→</span>
+                {/* 2. Text Content (Доод талд нь) */}
+                <div className="p-6 md:p-8 flex flex-col flex-1">
+                  <h2 className="text-xl font-black text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
+                    {s.title}
+                  </h2>
+                  <p className="text-slate-500 text-sm leading-relaxed italic font-serif line-clamp-3 mb-6">
+                    "{s.content}"
+                  </p>
+
+                  {/* 3. Actions (Mobile дээр шууд харагдана, Desktop дээр гоё харагдана) */}
+                  <div className="mt-auto flex items-center justify-between pt-5 border-t border-slate-50">
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEdit(s)}
+                        className="p-3 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                      >
+                        <Edit3 size={18} />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(s._id, s.title)}
+                        className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
+
+                    <Link
+                      href={`/story/${s._id}`}
+                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.15em] text-indigo-600 group/btn"
+                    >
+                      Дэлгэрэнгүй
+                      <ArrowRight
+                        size={14}
+                        className="group-hover/btn:translate-x-1 transition-transform"
+                      />
+                    </Link>
                   </div>
-                </Link>
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-40 bg-white rounded-[4rem] border-4 border-dashed border-slate-100">
-            <p className="text-slate-300 font-black text-xl uppercase tracking-widest italic">
-              Түүх олдсонгүй
+          <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[3rem]">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+              Дурсамж олдсонгүй
             </p>
           </div>
         )}
       </main>
 
-      {/* MODAL: ADD / EDIT */}
+      {/* --- MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-md">
-          <div className="bg-white w-full max-w-2xl rounded-[3.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-8 sm:p-12 overflow-y-auto">
-              <div className="flex justify-between items-start mb-10">
-                <h2 className="text-3xl font-[1000] text-slate-900 uppercase italic leading-none">
-                  {editingStory ? "Түүх засах" : "Шинэ"}{" "}
-                  <span className="text-indigo-600">дурсамж</span>
+        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-md transition-all">
+          {/* Modal Container */}
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white w-full max-w-xl rounded-t-[2.5rem] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[95vh] md:max-h-[90vh] animate-in slide-in-from-bottom duration-300"
+          >
+            {/* Header - Fixed */}
+            <div className="px-8 py-6 md:px-12 md:py-8 border-b border-slate-50 flex justify-between items-center shrink-0">
+              <div className="space-y-1">
+                <h2 className="text-xl md:text-2xl font-[1000] uppercase italic text-slate-900 leading-none">
+                  {editingStory ? "Засах" : "Шинэ"}{" "}
+                  <span className="text-indigo-600">Дурсамж</span>
                 </h2>
-                <button
-                  onClick={closeModal}
-                  className="text-slate-400 hover:text-slate-900 transition-colors"
-                >
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.5"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                  {editingStory
+                    ? "Мэдээллээ шинэчлэх"
+                    : "Түүхээ архивлаж үлдээх"}
+                </p>
               </div>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="w-12 h-12 md:w-10 md:h-10 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 active:scale-90 transition-all"
+              >
+                <X size={20} strokeWidth={3} />
+              </button>
+            </div>
 
-              <div className="space-y-6">
+            {/* Body - Scrollable */}
+            <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar space-y-8">
+              {/* Image Upload Area */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+                  Зураг оруулах
+                </label>
                 <div
-                  onClick={() => document.getElementById("file-upload").click()}
-                  className="h-48 rounded-[2.5rem] border-4 border-dashed border-slate-100 flex items-center justify-center bg-slate-50 overflow-hidden relative cursor-pointer hover:bg-slate-100 transition-all group"
+                  onClick={() => document.getElementById("file-input").click()}
+                  className="group h-48 md:h-56 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-indigo-50/50 hover:border-indigo-200 transition-all overflow-hidden relative"
                 >
                   <input
                     type="file"
-                    id="file-upload"
-                    className="hidden"
+                    id="file-input"
+                    hidden
                     onChange={handleFileChange}
+                    accept="image/*"
                   />
                   {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="relative w-full h-full">
+                      <img
+                        src={imagePreview}
+                        className="w-full h-full object-cover"
+                        alt="Preview"
+                      />
+                      <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                        <span className="bg-white px-4 py-2 rounded-xl text-xs font-bold shadow-xl">
+                          Солих
+                        </span>
+                      </div>
+                    </div>
                   ) : (
-                    <div className="text-center">
-                      <span className="text-3xl mb-2 block group-hover:scale-125 transition-transform">
-                        📸
-                      </span>
-                      <p className="font-black text-slate-400 text-[10px] tracking-widest uppercase">
-                        Зураг сонгох
-                      </p>
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm text-indigo-500 group-hover:scale-110 transition-transform">
+                        <ImageIcon size={28} />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs font-black uppercase text-slate-600">
+                          Дарж зураг сонгоно уу
+                        </p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">
+                          JPG, PNG (Max 5MB)
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-                      Огноо
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="жнь: 1995"
-                      className="w-full p-6 bg-slate-50 rounded-3xl font-bold outline-none border-2 border-transparent focus:border-indigo-100 transition-all text-sm"
-                      value={formData.date}
-                      onChange={(e) =>
-                        setFormData({ ...formData, date: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-                      Гарчиг
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Түүхийн нэр"
-                      className="w-full p-6 bg-slate-50 rounded-3xl font-bold outline-none border-2 border-transparent focus:border-indigo-100 transition-all text-sm"
-                      value={formData.title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-                    Түүхэн бичвэр
+              {/* Inputs Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+                    Огноо
                   </label>
-                  <textarea
-                    placeholder="Энд түүхээ дэлгэрэнгүй бичээрэй..."
-                    className="w-full p-8 bg-slate-50 rounded-[2.5rem] font-medium min-h-40 outline-none text-base leading-relaxed border-2 border-transparent focus:border-indigo-100 transition-all"
-                    value={formData.content}
-                    onChange={(e) =>
-                      setFormData({ ...formData, content: e.target.value })
-                    }
+                  <input
+                    name="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    placeholder="жнь: 1995 он"
+                    className="w-full p-5 bg-slate-50 rounded-2xl font-bold outline-none text-sm border-2 border-transparent focus:bg-white focus:border-indigo-100 focus:shadow-sm transition-all"
+                    required
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+                    Гарчиг
+                  </label>
+                  <input
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    placeholder="Түүхийн нэр"
+                    className="w-full p-5 bg-slate-50 rounded-2xl font-bold outline-none text-sm border-2 border-transparent focus:bg-white focus:border-indigo-100 focus:shadow-sm transition-all"
+                    required
                   />
                 </div>
               </div>
+
+              {/* Textarea */}
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">
+                  Түүхэн бичвэр
+                </label>
+                <textarea
+                  name="content"
+                  value={formData.content}
+                  onChange={handleInputChange}
+                  placeholder="Энд нандин дурсамжаа дэлгэрэнгүй бичээрэй..."
+                  className="w-full p-6 md:p-8 bg-slate-50 rounded-[2.5rem] font-serif italic text-base outline-none min-h-[180px] md:min-h-[200px] border-2 border-transparent focus:bg-white focus:border-indigo-100 focus:shadow-sm transition-all resize-none leading-relaxed"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="p-8 bg-slate-50 flex flex-col sm:flex-row gap-4">
+            {/* Footer - Fixed */}
+            <div className="px-8 py-8 md:px-12 bg-slate-50/50 flex flex-row gap-4 items-center shrink-0 border-t border-slate-100">
               <button
+                type="button"
                 onClick={closeModal}
-                className="flex-1 py-5 font-black text-slate-400 text-[10px] uppercase tracking-[0.2em] hover:text-slate-600 transition-colors"
+                className="flex-1 py-5 text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 transition-colors tracking-widest"
               >
                 Болих
               </button>
               <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex-2 py-5 bg-indigo-600 text-white font-black rounded-3xl text-[10px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-200 active:scale-95 transition-all disabled:opacity-50"
+                type="submit"
+                disabled={isSubmitLoading}
+                className="flex-[2.5] py-5 bg-indigo-600 text-white font-[1000] rounded-2xl text-[10px] uppercase tracking-[0.15em] shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:active:scale-100 transition-all flex items-center justify-center"
               >
-                {loading
-                  ? "Хадгалж байна..."
-                  : editingStory
-                  ? "Засах"
-                  : "Архивт нэмэх"}
+                {isSubmitLoading ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : editingStory ? (
+                  "Өөрчлөлт хадгалах"
+                ) : (
+                  "Архивт нэмэх"
+                )}
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md transition-all">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0"
+            onClick={() => setIsDeleteModalOpen(false)}
+          />
+
+          {/* Modal Card */}
+          <div className="relative bg-white w-full max-w-[340px] rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-slate-50 animate-in zoom-in-95 duration-200">
+            <div className="text-center">
+              {/* Simple Icon - Илүү дутуу эффектгүй */}
+              <div className="w-14 h-14 md:w-16 md:h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Trash2 className="w-6 h-6 md:w-7 md:h-7" />
+              </div>
+
+              {/* Text Content - Фонтуудыг жигдлэв */}
+              <div className="mb-8">
+                <h3 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight mb-2">
+                  Түүх <span className="text-rose-500">устгах</span>
+                </h3>
+                <p className="text-[11px] md:text-xs text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                  "{selectedStory.title}" <br />
+                  <span className="font-medium lowercase tracking-normal text-slate-400/80">
+                    бүрмөсөн устгах уу?
+                  </span>
+                </p>
+              </div>
+
+              {/* Action Buttons - Responsive Padding */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  disabled={isDeleting}
+                  onClick={() => setIsDeleteModalOpen(false)}
+                  className="py-4 rounded-xl bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all active:scale-95"
+                >
+                  Болих
+                </button>
+
+                <button
+                  disabled={isDeleting}
+                  onClick={handleDelete}
+                  className="py-4 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 shadow-lg shadow-rose-100 transition-all active:scale-95 flex items-center justify-center"
+                >
+                  {isDeleting ? (
+                    <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    "Устгах"
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
