@@ -133,7 +133,7 @@ export default function GenerationPage() {
                   )}
                 </div>
                 {!isExpanded && (
-                  <div className="w-px h-8 bg-gradient-to-b from-slate-200 to-transparent" />
+                  <div className="w-px h-8 bg-linear-to-b from-slate-200 to-transparent" />
                 )}
               </button>
             )}

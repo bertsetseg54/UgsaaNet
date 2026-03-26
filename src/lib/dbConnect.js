@@ -1,9 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error('MONGODB_URI тохируулаагүй байна (.env.local файлыг шалгана уу)');
+  throw new Error(
+    "MONGODB_URI тохируулаагүй байна (.env.local файлыг шалгана уу)"
+  );
 }
 
 let cached = global.mongoose;

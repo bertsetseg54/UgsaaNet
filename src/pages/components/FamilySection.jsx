@@ -1,41 +1,36 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/router";
 import { User, ChevronRight } from "lucide-react";
 
 const FamilySection = ({ data }) => {
-  const son = ["Хүү"];
-  const daughter = ["Охин"];
+  const router = useRouter();
 
-  if (!data || data.length === 0) return null;
-  console.log("ahduu", data);
+  if (!data || data.length === 0) {
+    return (
+      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest p-6 text-center">
+        Бүртгэгдээгүй
+      </p>
+    );
+  }
+
   return (
-    <section className="w-full p-6">
-      <h2>Гэр бүл</h2>
-      <div className="flex flex-row items-start gap-2 overflow-x-auto pb-4 no-scrollbar snap-x">
+    <section className="w-full">
+      <div className="flex flex-row items-center gap-1 overflow-x-auto pb-4 no-scrollbar snap-x">
         {data.map((person, index) => {
           const isMale = person.gender === "male";
-          const title = isMale ? son[index] : daughter[index];
-
           return (
             <div
               key={person._id || index}
               className="flex flex-row items-center shrink-0 snap-start"
             >
-              {/* Карт - Бүгд ижил хэмжээтэй (w-32) */}
-              <div className="flex flex-col items-center w-32 p-3 bg-white rounded-2xl border border-amber-100/50 shadow-sm transition-all hover:border-amber-300">
-                {/* Жижигхэн цол/нэршил */}
-                <span
-                  className={`text-[8px] font-black uppercase tracking-tighter mb-2 ${
-                    isMale ? "text-amber-600" : "text-rose-400"
-                  }`}
-                >
-                  {title || "Хүү"}
-                </span>
-
-                {/* Дугуй зураг */}
+              <button
+                onClick={() => router.push(`/person/${person._id}`)}
+                className="flex flex-col items-center w-28 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-emerald-300 hover:shadow-md active:scale-95 group"
+              >
                 <div
-                  className={`w-12 h-12 rounded-full overflow-hidden border-2 mb-2 shrink-0 ${
-                    isMale ? "border-amber-100" : "border-rose-50"
+                  className={`w-12 h-12 rounded-full overflow-hidden border-2 mb-2 shrink-0 transition-transform group-hover:scale-110 ${
+                    isMale ? "border-emerald-100" : "border-rose-100"
                   }`}
                 >
                   {person?.pic ? (
@@ -45,34 +40,31 @@ const FamilySection = ({ data }) => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-200">
+                    <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-300">
                       <User size={18} />
                     </div>
                   )}
                 </div>
 
-                {/* Нэр болон үе */}
                 <div className="text-center w-full">
-                  <h3 className="text-[10px] font-bold text-slate-800 truncate leading-tight">
+                  <h3 className="text-[10px] font-bold text-slate-800 truncate leading-tight group-hover:text-emerald-600">
                     {person.name}
                   </h3>
-                  <p className="text-[8px] text-slate-400 font-medium mt-1">
+                  <p className="text-[8px] text-slate-400 font-medium mt-1 uppercase">
                     {person.generation}-р үе
                   </p>
                 </div>
-              </div>
+              </button>
 
-              {/* Хойшоо заасан сум (Сүүлийн элементээс бусад дээр) */}
               {index !== data.length - 1 && (
-                <div className="px-1 text-amber-200">
-                  <ChevronRight size={16} strokeWidth={3} />
+                <div className="px-1 text-slate-200">
+                  <ChevronRight size={14} strokeWidth={3} />
                 </div>
               )}
             </div>
           );
         })}
       </div>
-
       <style jsx>{`
         .no-scrollbar::-webkit-scrollbar {
           display: none;

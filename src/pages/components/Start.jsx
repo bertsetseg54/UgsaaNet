@@ -9,7 +9,7 @@ const geistSans = Geist({
 export default function Start() {
   return (
     <div
-      className={`${geistSans.variable} font-sans relative w-full h-[100dvh] overflow-hidden bg-[#0a0a0a] text-white select-none flex flex-col`}
+      className={`${geistSans.variable} font-sans relative w-full h-dvh overflow-hidden bg-[#0a0a0a] text-white select-none flex flex-col`}
     >
       {/* Background with Slow Motion */}
       <div
@@ -38,15 +38,15 @@ export default function Start() {
             </h2>
 
             <div className="flex items-center justify-center gap-4">
-              <div className="h-[1px] w-8 bg-white/20"></div>
+              <div className="h-px w-8 bg-white/20"></div>
               <p className="text-[10px] sm:text-xs md:text-sm text-gray-400 font-light tracking-[0.2em] uppercase">
                 Future of Heritage
               </p>
-              <div className="h-[1px] w-8 bg-white/20"></div>
+              <div className="h-px w-8 bg-white/20"></div>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm md:text-base text-gray-500 max-w-[260px] sm:max-w-md mx-auto font-light leading-relaxed tracking-wide">
+          <p className="text-xs sm:text-sm md:text-base text-gray-500 max-w-65 sm:max-w-md mx-auto font-light leading-relaxed tracking-wide">
             Цэвэр цуст Монголын ирээдүйг <br className="hidden sm:block" />
             дижитал ертөнцөд хамтдаа бүтээцгээе.
           </p>
@@ -54,7 +54,7 @@ export default function Start() {
 
         {/* Action Buttons - Clean & Modern */}
         <div className="flex flex-col items-center gap-12 w-full">
-          <nav className="w-full max-w-[280px] sm:max-w-md flex flex-col sm:flex-row items-center justify-center gap-4">
+          <nav className="w-full max-w-70 sm:max-w-md flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/login"
               className="group relative w-full sm:w-44 py-4 rounded-full bg-white text-black text-[11px] font-bold uppercase tracking-widest transition-all duration-300 hover:bg-indigo-50 active:scale-95 text-center shadow-xl"

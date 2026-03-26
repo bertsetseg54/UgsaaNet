@@ -141,13 +141,13 @@ export default function RegisterForm({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <div
         onClick={() => !loading && setIsOpen(false)}
         className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"
       />
 
-      <div className="relative z-[110] bg-white w-full max-w-lg max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-100">
+      <div className="relative z-110 bg-white w-full max-w-lg max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-100">
         {/* Header */}
         <div className="px-6 py-4 flex justify-between items-center border-b border-slate-50 shrink-0">
           <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ export default function RegisterForm({
                     <span className="text-[8px] font-medium text-slate-400 uppercase tracking-widest">
                       Тодорхойлогдсон үе
                     </span>
-                    <div className="w-[1px] h-2.5 bg-slate-200 mx-0.5" />{" "}
+                    <div className="w-px h-2.5 bg-slate-200 mx-0.5" />{" "}
                   </div>
 
                   <div className="flex items-center gap-1">
@@ -277,7 +277,7 @@ export default function RegisterForm({
                 </div>
 
                 {showDropdown && searchQuery && !isRoot && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 shadow-2xl rounded-xl max-h-[200px] overflow-y-auto p-1.5 text-sm animate-in fade-in zoom-in-95 duration-200">
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 shadow-2xl rounded-xl max-h-50 overflow-y-auto p-1.5 text-sm animate-in fade-in zoom-in-95 duration-200">
                     {allPersons
                       .filter((p) =>
                         p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -500,7 +500,7 @@ export default function RegisterForm({
             type="submit"
             disabled={loading}
             onClick={handleSubmit}
-            className="flex-[2] py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-md shadow-amber-100 transition-all active:scale-95"
+            className="flex-2 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-md shadow-amber-100 transition-all active:scale-95"
           >
             {loading ? "Түр хүлээнэ үү..." : editData ? "Хадгалах" : "Бүртгэх"}
           </button>

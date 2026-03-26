@@ -95,7 +95,7 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
             }}
             className="p-1.5 md:p-2 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-slate-200 text-slate-400 hover:text-amber-500 active:scale-90 transition-all"
           >
-            <Edit size={10} className="md:w-[14px] md:h-[14px]" />
+            <Edit size={10} className="md:w-3.5 md:h-3.5" />
           </button>
 
           <button
@@ -105,20 +105,20 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
             }}
             className="p-1.5 md:p-2 rounded-lg bg-white/90 backdrop-blur-sm shadow-sm border border-slate-200 text-slate-400 hover:text-rose-500 active:scale-90 transition-all"
           >
-            <Trash2 size={10} className="md:w-[14px] md:h-[14px]" />
+            <Trash2 size={10} className="md:w-3.5 md:h-3.5" />
           </button>
         </div>
       </div>
 
       {/* MODAL - Ultra Minimal Responsive */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-4">
+        <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px]"
             onClick={() => setIsModalOpen(false)}
           />
 
-          <div className="relative bg-white w-full max-w-sm rounded-[2rem] md:rounded-[1.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+          <div className="relative bg-white w-full max-w-sm rounded-4xl md:rounded-3xl p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
             <div className="text-center space-y-4">
               <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
                 <Trash2 size={20} />

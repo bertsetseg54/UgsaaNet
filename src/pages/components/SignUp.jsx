@@ -333,11 +333,11 @@ export default function SignUp() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] px-4 py-12 selection:bg-indigo-100 relative">
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-gradient-to-br from-blue-50/50 to-transparent blur-3xl"></div>
-        <div className="absolute bottom-[-5%] right-[-5%] w-[30%] h-[30%] rounded-full bg-gradient-to-tr from-indigo-50/50 to-transparent blur-3xl"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-linear-to-br from-blue-50/50 to-transparent blur-3xl"></div>
+        <div className="absolute bottom-[-5%] right-[-5%] w-[30%] h-[30%] rounded-full bg-linear-to-tr from-indigo-50/50 to-transparent blur-3xl"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-[480px]">
+      <div className="relative z-10 w-full max-w-120">
         <button onClick={() => router.push("/")} className="group mb-8 inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-all text-sm font-medium outline-none">
           <div className="p-2 rounded-full bg-white shadow-sm border border-slate-100 group-hover:-translate-x-1 transition-all">
             <ArrowLeft size={16} />
@@ -347,10 +347,10 @@ export default function SignUp() {
 
         <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.03)] border border-white p-8 md:p-12 relative">
           <div className="mb-10 text-center">
-            <div className="inline-flex items-center justify-center p-3 mb-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 text-indigo-500">
+            <div className="inline-flex items-center justify-center p-3 mb-4 rounded-2xl bg-linear-to-br from-indigo-50 to-blue-50 text-indigo-500">
               <Sparkles size={24} />
             </div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Шинэ бүртгэл</h2>
+            <h2 className="text-3xl font-bold bg-linear-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">Шинэ бүртгэл</h2>
             <p className="text-slate-400 mt-2 text-sm font-medium">Өөрийн аяллаа өнөөдөр эхлүүлээрэй</p>
           </div>
 
