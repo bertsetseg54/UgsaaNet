@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import LandingPage from "./components/LandingPage";
 import Start from "./components/Start";
 import { useRouter } from "next/router";
 
