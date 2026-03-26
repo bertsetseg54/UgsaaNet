@@ -103,8 +103,11 @@ export default function PersonProfilePage() {
   // Loading хэсэг
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center font-black text-indigo-500 uppercase tracking-widest animate-pulse text-[10px]">
-        Ачаалж байна...
+      <div className="flex flex-col items-center justify-center py-32 opacity-50">
+        <div className="w-8 h-8 border-2 border-slate-100 border-t-amber-500 rounded-full animate-spin mb-4" />
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          Уншиж байна...
+        </p>
       </div>
     );
 
@@ -126,7 +129,6 @@ export default function PersonProfilePage() {
   return (
     <div className="min-h-screen bg-[#F2F2F2] py-6 px-3 md:px-6 antialiased text-slate-800">
       <div className="max-w-5xl mx-auto">
-        {/* Navigation - Simple & Small */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <button
             onClick={() => router.back()}
@@ -135,12 +137,17 @@ export default function PersonProfilePage() {
             <ArrowLeft size={14} />
             ЖАГСААЛТ РУУ БУЦАХ
           </button>
+        </div>
+        <section className="bg-white border border-slate-200 p-6">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+              <Users size={14} /> Өвөг дээдэс
+            </h3>
+          </div>
           <div className="text-xs bg-white px-3 py-1.5 rounded border border-slate-200 shadow-sm">
             <ParentsList data={ovog} />
           </div>
-        </div>
-
-        {/* MAIN DOCUMENT CARD */}
+        </section>
         <div className="bg-white border border-slate-300 shadow-sm rounded-sm overflow-hidden">
           {/* Top Section: Photo and Basic Specs */}
           <div className="p-6 md:p-10 border-b border-slate-100">
@@ -257,8 +264,6 @@ export default function PersonProfilePage() {
             </div>
           )}
         </div>
-
-        {/* Current Location Row */}
         <div className="mt-4 p-4 bg-white border border-slate-200 flex items-center gap-3">
           <MapPin size={14} className="text-slate-400" />
           <span className="text-[10px] font-bold text-slate-400 uppercase">
@@ -268,8 +273,6 @@ export default function PersonProfilePage() {
             {person.currentplace || "Бүртгэгдээгүй"}
           </span>
         </div>
-
-        {/* RELATED SECTIONS - TIGHT GRID */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <section className="bg-white border border-slate-200 p-6">
             <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
