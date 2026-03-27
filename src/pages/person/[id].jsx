@@ -1,11 +1,23 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { User, Users, Calendar, MapPin, Heart, ScrollText } from "lucide-react";
+import {
+  User,
+  Users,
+  Calendar,
+  MapPin,
+  Heart,
+  ScrollText,
+  Plus,
+  BookOpen,
+  HomeIcon,
+} from "lucide-react";
 import ParentsList from "../components/ParentsList";
 import SiblingsList from "../components/SiblingsList";
 import FamilySection from "../components/FamilySection";
 import Link from "next/link";
+import Home from "..";
+import RegisterForm from "../components/RegisterForm";
 
 export default function PersonProfilePage() {
   const router = useRouter();
@@ -16,6 +28,7 @@ export default function PersonProfilePage() {
   const [ancestors, setAncestors] = useState([]);
   const [siblings, setSiblings] = useState([]);
   const [children, setChildren] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // --- Find ancestors recursively ---
   const findAncestors = (currentId, allPersons) => {
@@ -94,19 +107,40 @@ export default function PersonProfilePage() {
           href="/landingPage"
           className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-xs font-bold mb-6"
         >
-          ← ЖАГСААЛТ РУУ БУЦАХ
+          ← БУЦАХ
         </Link>
 
         {/* Ancestors Section */}
         <section className="bg-white border border-slate-200 p-6 mb-6">
-          <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
-            <Users size={14} /> Өвөг дээдэс
-          </h3>
-          <div className="text-xs bg-white px-3 py-1.5 rounded border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 mb-2">
+              <Users size={14} /> Өвөг дээдэс
+            </h3>
+          </div>
+          <div className="text-sm">
             <ParentsList data={ancestors} />
           </div>
         </section>
-
+        {/* --- MOBILE NAV --- */}
+        <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px]">
+          <div className="bg-white/80 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] p-1.5 shadow-2xl flex items-center justify-between">
+            <Link href="/landingPage" className="p-4 text-slate-400">
+              <HomeIcon size={22} /> {/* Одоо энэ нь зүгээр икон болсон */}
+            </Link>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="group flex items-center gap-2 bg-slate-900 text-white px-6 py-3.5 rounded-[1.8rem] shadow-lg shadow-slate-200/50 hover:bg-slate-800 transition-all active:scale-95 shrink-0"
+            >
+              <Plus size={16} strokeWidth={3} />
+              <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                Түүх нэмэх
+              </span>
+            </button>
+            <Link href="/story" className="p-4 text-indigo-600">
+              <BookOpen size={22} />
+            </Link>
+          </div>
+        </nav>
         {/* Profile Info */}
         <div className="bg-white border border-slate-300 shadow-sm rounded-sm overflow-hidden mb-6">
           <div className="p-6 md:p-10 border-b border-slate-100 flex flex-col md:flex-row gap-8 md:gap-12">
@@ -268,6 +302,11 @@ export default function PersonProfilePage() {
           </p>
         </div>
       </div>
+      <RegisterForm
+        isOpen={isModalOpen}
+        setIsOpen={setIsModalOpen}
+        // шаардлагатай бусад props...
+      />
     </div>
   );
 }

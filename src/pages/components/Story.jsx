@@ -286,7 +286,7 @@ export default function Story() {
           </Link>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="group flex items-center gap-2 bg-slate-900 text-white px-6 py-3.5 rounded-[1.8rem]shadow-lg shadow-slate-200/50 hover:bg-slate-800 transition-all active:scale-95 shrink-0"
+            className="group flex items-center gap-2 bg-slate-900 text-white px-6 py-3.5 rounded-[1.8rem] shadow-lg shadow-slate-200/50 hover:bg-slate-800 transition-all active:scale-95 shrink-0"
           >
             <Plus size={16} strokeWidth={3} />
             <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
