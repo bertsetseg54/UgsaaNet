@@ -181,7 +181,7 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
-      <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px]">
+      <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-100">
         <div className="bg-white/80 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex items-center justify-between transition-all">
           {/* Нүүр хуудас */}
           <Link href="/" className={"p-4  text-amber-600"}>
