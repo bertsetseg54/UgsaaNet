@@ -21,10 +21,14 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
+      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
       const res = await fetch("/api/persons", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ _id: _id.toString() }),
+        body: JSON.stringify({ 
+          _id: _id.toString(),
+          familyId: user.familyId,
+        }),
       });
 
       const result = await res.json();

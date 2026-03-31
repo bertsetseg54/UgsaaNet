@@ -26,19 +26,27 @@ export default function LandingPage() {
   const [showAll, setShowAll] = useState(false);
   const [userName, setUserName] = useState("Хэрэглэгч");
   const [searchQuery, setSearchQuery] = useState("");
+  const [familyId, setFamilyId] = useState("");
 
   const router = useRouter();
 
   const fetchProfiles = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/persons");
+      const url = familyId 
+        ? `/api/persons?familyId=${encodeURIComponent(familyId)}`
+        : "/api/persons";
+      const res = await fetch(url);
+
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
         setProfiles(data.data);
+      } else {
+        setProfiles([]);
       }
     } catch (err) {
       console.error("Fetch error:", err);
+      setProfiles([]);
     } finally {
       setLoading(false);
     }
@@ -60,18 +68,34 @@ export default function LandingPage() {
   };
 
   useEffect(() => {
-    fetchProfiles();
     const storedData = localStorage.getItem("user_data");
     if (storedData) {
       try {
         const user = JSON.parse(storedData);
         setUserName(user.name || user.email?.split("@")[0] || "Хэрэглэгч");
+        // familyId-г зөвхөн хүчин төгөлдөр бол ашиглах
+        const fId = user.familyId || "";
+        if (fId && /^[a-zA-Z0-9_-]+$/.test(fId)) {
+          setFamilyId(fId);
+        } else if (fId) {
+          // Хүчин төгөлдөр биш familyId - localStorage цэвэрлэн дахин нэвтрэх шаардлага
+          console.warn("Invalid familyId detected, clearing storage");
+          localStorage.clear();
+          router.push("/start");
+          return;
+        }
       } catch {
         console.error("User parse error");
       }
     }
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (familyId && mounted) {
+      fetchProfiles();
+    }
+  }, [familyId, mounted]);
 
   if (!mounted) return <div className="min-h-screen bg-[#FDFDFD]" />;
 
@@ -109,6 +133,21 @@ export default function LandingPage() {
           Шинэ бүртгэл
         </span>
       </div>
+    </button>
+  );
+
+  const ShareFamilyButton = ({ className = "" }) => (
+    <button
+      onClick={() => {
+        if (familyId) {
+          navigator.clipboard.writeText(familyId);
+          alert("✅ Ургийн код хуулагдлаа!\n\n" + familyId);
+        }
+      }}
+      className={`text-[10px] md:text-[11px] uppercase font-black text-slate-500 hover:text-amber-600 transition-colors px-3 py-2 rounded-lg hover:bg-amber-50 ${className}`}
+      title={familyId || "Loading..."}
+    >
+      📋 Код хуулах
     </button>
   );
 
@@ -167,6 +206,9 @@ export default function LandingPage() {
                 Түүх намтар
               </Link>
               <div className="h-4 w-px bg-slate-200 hidden lg:block" />
+
+              {/* Share Family Code Button */}
+              <ShareFamilyButton className="hidden md:block" />
 
               {/* Өмнөх RegisterButton - Mobile дээр нуугдсан хэвээр */}
               <RegisterButton className="hidden md:flex" />

@@ -210,7 +210,13 @@ export default function Login() {
       } else {
         // ✅ Token болон user_data хадгалах
         if (data.token) localStorage.setItem("token", data.token);
-        localStorage.setItem("user_data", JSON.stringify({ email: formData.email, ...data.user }));
+        const userData = {
+          email: formData.email,
+          name: data.user?.name || formData.email,
+          familyId: data.familyId,
+          ...data.user
+        };
+        localStorage.setItem("user_data", JSON.stringify(userData));
 
         // ✅ Үндсэн нүүр (index.js) рүү шилжинэ, тэндээс LandingPage харагдана
         router.push("/"); 

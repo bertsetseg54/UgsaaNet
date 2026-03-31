@@ -50,7 +50,11 @@ export default function RegisterForm({
 
   useEffect(() => {
     if (isOpen) {
-      fetch("/api/persons")
+      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      const url = user.familyId 
+        ? `/api/persons?familyId=${encodeURIComponent(user.familyId)}`
+        : "/api/persons";
+      fetch(url)
         .then((res) => res.json())
         .then((data) => {
           if (data.success) setAllPersons(data.data);
@@ -113,8 +117,10 @@ export default function RegisterForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const user = JSON.parse(localStorage.getItem("user_data") || "{}");
     const finalData = {
       ...formData,
+      familyId: user.familyId,
       pic: imagePreview,
       spouse: isMarried ? formData.spouse : null,
       deathyear: isDeceased ? formData.deathyear : null,
