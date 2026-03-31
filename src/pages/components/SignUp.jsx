@@ -6,8 +6,9 @@ import { ArrowLeft, User, Mail, Lock, Eye, EyeOff, Sparkles, ChevronRight } from
 export default function SignUp() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [familyMode, setFamilyMode] = useState("create"); // "create" или "join"
   const [formData, setFormData] = useState({
-    name: "", email: "", password: "", confirmPassword: "",
+    name: "", email: "", password: "", confirmPassword: "", familyName: "", familyCode: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,14 +26,36 @@ export default function SignUp() {
       setError("Нууц үг хоорондоо таарахгүй байна.");
       return;
     }
+    
+    let familyId = "";
+    
+    if (familyMode === "create") {
+      if (!formData.familyName) {
+        setError("Ургийн нэрийг оруулна уу");
+        return;
+      }
+      // Шинэ ураг үүсгэх - UUID ашиглаж URL-safe болгох
+      familyId = `family_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    } else {
+      if (!formData.familyCode) {
+        setError("Ургийн кодыг оруулна уу");
+        return;
+      }
+      familyId = formData.familyCode.trim();
+    }
+    
     try {
       setLoading(true);
       setError("");
+      
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: formData.name, email: formData.email, password: formData.password,
+          name: formData.name, 
+          email: formData.email, 
+          password: formData.password,
+          familyId,
         }),
       });
 
@@ -43,7 +66,11 @@ export default function SignUp() {
       } else {
         // ✅ LocalStorage-д хадгалах
         localStorage.setItem("token", data.token);
-        localStorage.setItem("user_data", JSON.stringify({ name: formData.name, email: formData.email }));
+        localStorage.setItem("user_data", JSON.stringify({ 
+          name: formData.name, 
+          email: formData.email,
+          familyId,
+        }));
         
         alert("Амжилттай бүртгэгдлээ 🎉");
         router.push("/"); // Үндсэн нүүр рүү (index.js)
@@ -83,8 +110,57 @@ export default function SignUp() {
 
           {error && <div className="mb-6 p-4 rounded-2xl bg-red-50/50 border border-red-100 text-red-500 text-xs font-medium text-center">{error}</div>}
 
+          {/* Family Mode Selection */}
+          <div className="mb-6 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setFamilyMode("create")}
+              className={`flex-1 py-3 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all ${
+                familyMode === "create"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+            >
+              Шинэ ураг үүсгэх
+            </button>
+            <button
+              type="button"
+              onClick={() => setFamilyMode("join")}
+              className={`flex-1 py-3 px-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all ${
+                familyMode === "join"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+            >
+              Ургийн кодоор нэмүүлэх
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-4">
+              {/* Family Name - Create Mode */}
+              {familyMode === "create" && (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Ургийн нэр</label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <input type="text" name="familyName" placeholder="Та ямар ургийн хүн вэ?" value={formData.familyName} onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-indigo-200 transition-all text-slate-600" />
+                  </div>
+                </div>
+              )}
+
+              {/* Family Code - Join Mode */}
+              {familyMode === "join" && (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Ургийн код</label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" size={18} />
+                    <input type="text" name="familyCode" placeholder="Ургийн эзэнээс авсан код" value={formData.familyCode} onChange={handleChange} className="w-full pl-12 pr-4 py-3.5 bg-slate-50/50 border border-slate-100 rounded-2xl outline-none focus:bg-white focus:border-indigo-200 transition-all text-slate-600" />
+                  </div>
+                  <p className="text-[9px] text-slate-400 ml-1">Ургийн эзэнээ холбоод код авна уу</p>
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Нэр</label>
                 <div className="relative group">

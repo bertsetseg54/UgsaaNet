@@ -49,7 +49,11 @@ export default function PersonProfilePage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/persons");
+        const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+        const url = user.familyId 
+          ? `/api/persons?familyId=${encodeURIComponent(user.familyId)}`
+          : "/api/persons";
+        const res = await fetch(url);
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
           setAllPersons(data.data);

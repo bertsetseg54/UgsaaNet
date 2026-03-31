@@ -63,7 +63,11 @@ export default function Story() {
   const fetchStories = useCallback(async () => {
     setIsPageLoading(true);
     try {
-      const res = await fetch("/api/stories");
+      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      const url = user.familyId 
+        ? `/api/stories?familyId=${encodeURIComponent(user.familyId)}`
+        : "/api/stories";
+      const res = await fetch(url);
       const data = await res.json();
       setStories(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -135,7 +139,11 @@ export default function Story() {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, image: imageUrl }),
+        body: JSON.stringify({ 
+          ...formData, 
+          image: imageUrl,
+          familyId: JSON.parse(localStorage.getItem("user_data") || "{}").familyId
+        }),
       });
 
       if (response.ok) {
@@ -168,8 +176,13 @@ export default function Story() {
 
     setIsDeleting(true); // Loading эхлүүлэх
     try {
+      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
       const res = await fetch(`/api/stories/${selectedStory.id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          familyId: user.familyId 
+        }),
       });
 
       if (res.ok) {
@@ -252,7 +265,7 @@ export default function Story() {
           <div className="flex items-center gap-3 md:gap-6">
             {/* НҮҮР ХУУДАСНЫ ХОЛБООС (Буцааж нэмэв) */}
             <Link
-              href="/"
+              href="/landingPage"
               className="hidden lg:block text-[11px] font-black uppercase text-slate-400 hover:text-indigo-600 transition-colors tracking-widest"
             >
               Нүүр
@@ -281,7 +294,7 @@ export default function Story() {
       {/* --- MOBILE NAV --- */}
       <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px]">
         <div className="bg-white/80 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] p-1.5 shadow-2xl flex items-center justify-between">
-          <Link href="/" className="p-4 text-slate-400">
+          <Link href="/landingPage" className="p-4 text-slate-400">
             <Home size={22} />
           </Link>
           <button
@@ -302,8 +315,8 @@ export default function Story() {
       <main className="max-w-6xl mx-auto px-4 md:px-6 pt-24 md:pt-32 pb-32">
         {/* --- SIMPLE HEADER --- */}
         <div className="flex items-center justify-between mb-10 border-b border-slate-100 pb-6">
-          <button
-            onClick={() => router.back()}
+          <a 
+          href="/landingPage"
             className="p-2 -ml-2 text-slate-400 hover:text-indigo-600 transition-all active:scale-75 flex items-center justify-center"
             aria-label="Буцах"
           >
@@ -312,7 +325,7 @@ export default function Story() {
               strokeWidth={2.5}
               className="group-hover:-translate-x-1 transition-transform duration-300"
             />
-          </button>
+          </a>
           <h1 className="text-xl font-[1000] uppercase tracking-tighter text-slate-900">
             Цадиг <span className="text-indigo-600">Тууж</span>
           </h1>

@@ -32,12 +32,12 @@ export default async function handler(req, res) {
 
     // JWT token үүсгэх
     const token = jwt.sign(
-      { userId: user._id, name: user.name, email: user.email },
+      { userId: user._id, name: user.name, email: user.email, familyId: user.familyId },
       process.env.JWT_SECRET || "SECRET_KEY", // .env.local-д JWT_SECRET нэмэх
       { expiresIn: "1d" }
     );
 
-    res.status(200).json({ token });
+    res.status(200).json({ token, familyId: user.familyId });
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     res.status(500).json({ message: "Server error" });

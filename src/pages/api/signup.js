@@ -6,9 +6,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Only POST allowed" });
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password, familyId } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !familyId) {
     return res.status(400).json({ message: "Бүх талбарыг бөглөнө үү" });
   }
 
@@ -27,6 +27,7 @@ export default async function handler(req, res) {
     name,
     email,
     password: hashedPassword,
+    familyId,
     createdAt: new Date(),
   });
 
