@@ -206,7 +206,7 @@ export default function Story() {
       {/* --- TOAST NOTIFICATION --- */}
       {toast.show && (
         <div
-          className={`fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+          className={`fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 z-200 flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border backdrop-blur-md animate-in fade-in slide-in-from-bottom-4 duration-300 ${
             toast.type === "error"
               ? "bg-red-50/90 border-red-100 text-red-600"
               : "bg-emerald-50/90 border-emerald-100 text-emerald-600"
@@ -279,7 +279,7 @@ export default function Story() {
       </header>
 
       {/* --- MOBILE NAV --- */}
-      <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-[400px]">
+      <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-40">
         <div className="bg-white/80 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] p-1.5 shadow-2xl flex items-center justify-between">
           <Link href="/" className="p-4 text-slate-400">
             <Home size={22} />
@@ -316,7 +316,7 @@ export default function Story() {
           <h1 className="text-xl font-[1000] uppercase tracking-tighter text-slate-900">
             Цадиг <span className="text-indigo-600">Тууж</span>
           </h1>
-          <div className="relative min-w-[160px]">
+          <div className="relative min-w-40">
             {/* Trigger Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -342,7 +342,7 @@ export default function Story() {
                   onClick={() => setIsOpen(false)}
                 />
 
-                <div className="absolute right-0 mt-2 w-full bg-white border border-slate-100 rounded-[1.5rem] shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-2 w-full bg-white border border-slate-100 rounded-3xl shadow-xl z-20 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                   <button
                     onClick={() => {
                       setSortOrder("desc");
@@ -461,7 +461,7 @@ export default function Story() {
 
       {/* --- MODAL --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-md transition-all">
+        <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-md transition-all">
           {/* Modal Container */}
           <form
             onSubmit={handleSubmit}
@@ -578,7 +578,7 @@ export default function Story() {
                   value={formData.content}
                   onChange={handleInputChange}
                   placeholder="Энд нандин дурсамжаа дэлгэрэнгүй бичээрэй..."
-                  className="w-full p-6 md:p-8 bg-slate-50 rounded-[2.5rem] font-serif italic text-base outline-none min-h-[180px] md:min-h-[200px] border-2 border-transparent focus:bg-white focus:border-indigo-100 focus:shadow-sm transition-all resize-none leading-relaxed"
+                  className="w-full p-6 md:p-8 bg-slate-50 rounded-[2.5rem] font-serif italic text-base outline-none min-h-45 md:min-h-50 border-2 border-transparent focus:bg-white focus:border-indigo-100 focus:shadow-sm transition-all resize-none leading-relaxed"
                   required
                 />
               </div>
@@ -611,7 +611,7 @@ export default function Story() {
         </div>
       )}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md transition-all">
+        <div className="fixed inset-0 z-110 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md transition-all">
           {/* Overlay */}
           <div
             className="absolute inset-0"
@@ -619,7 +619,7 @@ export default function Story() {
           />
 
           {/* Modal Card */}
-          <div className="relative bg-white w-full max-w-[340px] rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-slate-50 animate-in zoom-in-95 duration-200">
+          <div className="relative bg-white w-full max-w-85 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border border-slate-50 animate-in zoom-in-95 duration-200">
             <div className="text-center">
               {/* Simple Icon - Илүү дутуу эффектгүй */}
               <div className="w-14 h-14 md:w-16 md:h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
