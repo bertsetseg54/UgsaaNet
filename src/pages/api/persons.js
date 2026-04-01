@@ -12,7 +12,15 @@ export default async function handler(req, res) {
   try {
     // --- GET: МЭДЭЭЛЭЛ АВАХ ---
     if (req.method === "GET") {
-      const persons = await collection.find({}).toArray();
+      // User-ийн familyId авах
+      const familyId = req.query.familyId;
+
+      if (!familyId) {
+        return res.status(401).json({ success: false, message: "Нэвтрэлт хэрэгтэй" });
+      }
+
+      // Зөвхөн нэг ургийн хүмүүсийг авах
+      const persons = await collection.find({ familyId }).toArray();
       const formatted = persons.map((p) => {
         const parent = p.parentId
           ? persons.find((pr) => pr._id.toString() === p.parentId.toString())
@@ -34,6 +42,12 @@ export default async function handler(req, res) {
     // --- POST: ШИНЭЭР БҮРТГЭХ ---
     if (req.method === "POST") {
       const { pic, ...data } = req.body;
+      const familyId = data.familyId;
+
+      if (!familyId) {
+        return res.status(401).json({ success: false, message: "Нэвтрэлт хэрэгтэй" });
+      }
+
       let imageUrl = data.imageUrl || "";
 
       if (pic && pic.startsWith("data:image")) {
@@ -45,6 +59,7 @@ export default async function handler(req, res) {
 
       const newPerson = {
         ...data,
+        familyId,
         generation: Number(data.generation) || 1,
         imageUrl,
         createdAt: new Date(),
@@ -60,6 +75,18 @@ export default async function handler(req, res) {
     // --- PUT: МЭДЭЭЛЭЛ ЗАСАХ ---
     if (req.method === "PUT") {
       const { _id, updateData } = req.body;
+      const familyId = updateData.familyId;
+
+      if (!familyId) {
+        return res.status(401).json({ success: false, message: "Нэвтрэлт хэрэгтэй" });
+      }
+
+      // Тухайн хүн дээд ургийн гишүүн мөн эсэхийг шалгалт хийх
+      const person = await collection.findOne({ _id: new ObjectId(_id) });
+      if (!person || person.familyId !== familyId) {
+        return res.status(403).json({ success: false, message: "Энэ ургийн гишүүн биш байна" });
+      }
+
       const { pic, ...fields } = updateData;
       let finalImageUrl = fields.imageUrl || "";
 
@@ -84,6 +111,7 @@ export default async function handler(req, res) {
     if (req.method === "DELETE") {
       // Body-оос ирж буй өгөгдлийг шалгах
       const id = req.body._id || req.body.id || req.query.id;
+      const familyId = req.body.familyId || req.query.familyId;
 
       if (!id) {
         return res
@@ -91,7 +119,25 @@ export default async function handler(req, res) {
           .json({ success: false, message: "ID дамжуулаагүй байна" });
       }
 
+      if (!familyId) {
+        return res.status(401).json({ success: false, message: "Нэвтрэлт хэрэгтэй" });
+      }
+
       try {
+        // Тухайн хүн өөрийн ургийн гишүүн мөн эсэхийг шалгалт хийх
+        const person = await collection.findOne({ _id: new ObjectId(id.toString()) });
+        
+        if (!person) {
+          return res.status(404).json({
+            success: false,
+            message: "Бааз дээр ийм ID-тай хүн олдсонгүй",
+          });
+        }
+
+        if (person.familyId !== familyId) {
+          return res.status(403).json({ success: false, message: "Энэ ургийн гишүүн биш байна" });
+        }
+
         // 1. Зургийг Cloudinary-аас устгах хэсгийг түр алгасаад баазаас устгаж үзэцгээе
         const result = await collection.deleteOne({
           _id: new ObjectId(id.toString()),
