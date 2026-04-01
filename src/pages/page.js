@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import LandingPage from "./components/LandingContent";
-import SignUpPage from "./components/SignUpForm";
+import LandingPage from "./components/LandingPage";
+import SignUp from "./components/SignUp";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
 
   useEffect(() => {
     // 1. LocalStorage-оос шалгах
-    const user = localStorage.getItem("user_token");
+    const user = localStorage.getItem("user_data");
     
     if (user) {
       setIsLoggedIn(true);
@@ -27,7 +27,7 @@ export default function Home() {
       {isLoggedIn ? (
         <LandingPage onLogout={() => setIsLoggedIn(false)} />
       ) : (
-        <SignUpPage onLogin={() => setIsLoggedIn(true)} />
+        <SignUp onLogin={() => setIsLoggedIn(true)} />
       )}
     </main>
   );
