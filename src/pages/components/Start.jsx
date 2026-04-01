@@ -210,9 +210,9 @@ export default function Start() {
           </div>
 
           {/* Footer Bottom */}
-          <footer className="opacity-20 translate-y-4">
-            <p className="text-[9px] text-white tracking-[0.6em] uppercase font-medium">
-              © MMXXVI Core Technology
+          <footer className="opacity-50 text-center">
+            <p className="text-[9px] text-white tracking-[0.6em] text-xl uppercase font-medium">
+              ©Br-Coding
             </p>
           </footer>
         </div>
