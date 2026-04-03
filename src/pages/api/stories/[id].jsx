@@ -3,14 +3,23 @@ import Story from "@/models/Story";
 
 export default async function handler(req, res) {
   const { id } = req.query;
+  const { familyId } = req.body || req.query;
   await dbConnect();
 
   // 1. УСТГАХ (DELETE)
   if (req.method === "DELETE") {
     try {
-      const deletedStory = await Story.findByIdAndDelete(id);
-      if (!deletedStory)
+      if (!familyId) {
+        return res.status(401).json({ error: "Нэвтрэлт хэрэгтэй" });
+      }
+      const story = await Story.findById(id);
+      if (!story) {
         return res.status(404).json({ error: "Түүх олдсонгүй" });
+      }
+      if (story.familyId !== familyId) {
+        return res.status(403).json({ error: "Энэ ургийн түүх биш байна" });
+      }
+      const deletedStory = await Story.findByIdAndDelete(id);
       return res.status(200).json({ message: "Амжилттай устлаа" });
     } catch (e) {
       return res.status(500).json({ error: "Устгах үед алдаа гарлаа" });
@@ -20,8 +29,18 @@ export default async function handler(req, res) {
   // 2. ЗАСАХ (PUT)
   else if (req.method === "PUT") {
     try {
+      if (!familyId) {
+        return res.status(401).json({ error: "Нэвтрэлт хэрэгтэй" });
+      }
+      const story = await Story.findById(id);
+      if (!story) {
+        return res.status(404).json({ error: "Түүх олдсонгүй" });
+      }
+      if (story.familyId !== familyId) {
+        return res.status(403).json({ error: "Энэ ургийн түүх биш байна" });
+      }
       const updatedStory = await Story.findByIdAndUpdate(id, req.body, {
-        new: true, // Шинэчлэгдсэн датаг буцаах
+        new: true,
         runValidators: true,
       });
       if (!updatedStory)
