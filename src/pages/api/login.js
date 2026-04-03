@@ -32,7 +32,12 @@ export default async function handler(req, res) {
 
     // JWT token үүсгэх
     const token = jwt.sign(
-      { userId: user._id, name: user.name, email: user.email, familyId: user.familyId },
+      {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        familyId: user.familyId,
+      },
       process.env.JWT_SECRET || "SECRET_KEY", // .env.local-д JWT_SECRET нэмэх
       { expiresIn: "1d" }
     );

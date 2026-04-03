@@ -50,15 +50,30 @@ export default function RegisterForm({
 
   useEffect(() => {
     if (isOpen) {
-      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
-      const url = user.familyId 
-        ? `/api/persons?familyId=${encodeURIComponent(user.familyId)}`
-        : "/api/persons";
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) setAllPersons(data.data);
-        });
+      const rawData = localStorage.getItem("user_data");
+      if (rawData && rawData !== "undefined") {
+        try {
+          const user = JSON.parse(rawData);
+          const url = user?.familyId
+            ? `/api/persons?familyId=${encodeURIComponent(user.familyId)}`
+            : "/api/persons";
+          fetch(url)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) setAllPersons(data.data);
+            });
+        } catch (e) {
+          console.error("JSON parse error", e);
+          // 1. Буруу форматтай датаг цэвэрлэх (Дахиж алдаа гаргахгүй байхын тулд)
+          localStorage.removeItem("user_data");
+
+          // 2. Хэрэглэгчийг дахин нэвтрэх хуудас руу шилжүүлэх (Сонголттой)
+          router.push("/login");
+
+          // 3. Хэрэв дата байхгүй бол анхны утгыг оноох
+          const url = "/api/persons";
+        }
+      }
     }
   }, [isOpen]);
 

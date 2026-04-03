@@ -33,7 +33,7 @@ export default function LandingPage() {
   const fetchProfiles = async () => {
     try {
       setLoading(true);
-      const url = familyId 
+      const url = familyId
         ? `/api/persons?familyId=${encodeURIComponent(familyId)}`
         : "/api/persons";
       const res = await fetch(url);
@@ -69,27 +69,39 @@ export default function LandingPage() {
 
   useEffect(() => {
     const storedData = localStorage.getItem("user_data");
-    if (storedData) {
-      try {
-        const user = JSON.parse(storedData);
-        setUserName(user.name || user.email?.split("@")[0] || "Хэрэглэгч");
-        // familyId-г зөвхөн хүчин төгөлдөр бол ашиглах
-        const fId = user.familyId || "";
-        if (fId && /^[a-zA-Z0-9_-]+$/.test(fId)) {
-          setFamilyId(fId);
-        } else if (fId) {
-          // Хүчин төгөлдөр биш familyId - localStorage цэвэрлэн дахин нэвтрэх шаардлага
-          console.warn("Invalid familyId detected, clearing storage");
-          localStorage.clear();
-          router.push("/start");
-          return;
-        }
-      } catch {
-        console.error("User parse error");
-      }
+    const token = localStorage.getItem("token");
+
+    // 1. Хэрэв токен эсвэл хэрэглэгчийн мэдээлэл байхгүй бол шууд гаргана
+    if (!storedData || !token) {
+      router.push("/start"); // эсвэл /login
+      return;
     }
+
+    try {
+      const user = JSON.parse(storedData);
+      setUserName(user.name || user.email?.split("@")[0] || "Хэрэглэгч");
+
+      const fId = user.familyId || "";
+
+      // 2. FamilyId шалгах
+      if (fId && /^[a-zA-Z0-9_-]+$/.test(fId)) {
+        setFamilyId(fId);
+      } else {
+        // Хэрэв familyId байхгүй бол нэвтрэх эрхгүй гэж үзнэ
+        console.warn("No familyId detected, redirecting...");
+        localStorage.clear();
+        router.push("/start");
+        return;
+      }
+    } catch (error) {
+      console.error("User parse error");
+      localStorage.clear();
+      router.push("/start");
+      return;
+    }
+
     setMounted(true);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (familyId && mounted) {
