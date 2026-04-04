@@ -64,15 +64,23 @@ export default function Story() {
     setIsPageLoading(true);
     try {
       const user = JSON.parse(localStorage.getItem("user_data") || "{}");
-      const url = user.familyId 
-        ? `/api/stories?familyId=${encodeURIComponent(user.familyId)}`
-        : "/api/stories";
+      if (!user.familyId) {
+        setStories([]);
+        showToast("Family ID олдсонгүй. Та эхлээд нэвтрэнэ үү", "error");
+        return;
+      }
+      const url = `/api/stories?familyId=${encodeURIComponent(user.familyId)}`;
       const res = await fetch(url);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Stories авах үед алдаа гарлаа");
+      }
       const data = await res.json();
       setStories(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Fetch error:", err);
       setStories([]);
+      showToast("Сервертэй холбогдоход алдаа гарлаа", "error");
     } finally {
       setIsPageLoading(false);
     }
@@ -116,6 +124,10 @@ export default function Story() {
     if (!title || !date || !content)
       return showToast("Мэдээллээ бүрэн бөглөнө үү", "error");
 
+    const currentUser = JSON.parse(localStorage.getItem("user_data") || "{}");
+    if (!currentUser.familyId)
+      return showToast("Family ID олдсонгүй. Та эхлээд нэвтрэнэ үү", "error");
+
     setIsSubmitLoading(true);
     try {
       let imageUrl = editingStory?.image || "";
@@ -127,7 +139,17 @@ export default function Story() {
           method: "POST",
           body: uploadData,
         });
+
+        if (!uploadRes.ok) {
+          const errorPayload = await uploadRes.json().catch(() => null);
+          throw new Error(errorPayload?.error || "Зураг upload-лахад алдаа гарлаа");
+        }
+
         const uploadJson = await uploadRes.json();
+        if (!uploadJson?.url) {
+          throw new Error("Зураг серверээс буцаагдсангүй");
+        }
+
         imageUrl = uploadJson.url;
       }
 
@@ -142,7 +164,7 @@ export default function Story() {
         body: JSON.stringify({ 
           ...formData, 
           image: imageUrl,
-          familyId: JSON.parse(localStorage.getItem("user_data") || "{}").familyId
+          familyId: currentUser.familyId
         }),
       });
 

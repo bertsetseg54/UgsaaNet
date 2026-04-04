@@ -13,8 +13,8 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
 
   const isFemale = gender === "female";
   const themeStyles = isFemale
-    ? "border-rose-50 bg-gradient-to-t from-rose-50/50 to-white shadow-rose-100/50 hover:border-rose-200"
-    : "border-blue-50 bg-gradient-to-t from-blue-50/50 to-white shadow-blue-100/50 hover:border-blue-200";
+    ? "border-rose-50 bg-gradient-to-t from-rose-50/50 to-white shadow-rose-100/50 md:hover:border-rose-200"
+    : "border-blue-50 bg-gradient-to-t from-blue-50/50 to-white shadow-blue-100/50 md:hover:border-blue-200";
 
   const accentColor = isFemale ? "text-rose-600" : "text-blue-600";
   const dividerColor = isFemale ? "border-rose-100" : "border-blue-100";
