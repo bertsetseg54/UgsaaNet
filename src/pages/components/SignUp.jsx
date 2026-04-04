@@ -243,7 +243,7 @@ export default function SignUp() {
               {familyMode === "create" ? (
                 <div className="space-y-1.5">
                   <label className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">
-                    Ургийн нэр
+                    Ургийн овог
                   </label>
 
                   <div className="relative group">
@@ -255,7 +255,7 @@ export default function SignUp() {
                     <input
                       type="text"
                       name="familyName"
-                      placeholder="Жишээ: Алтан ураг"
+                      placeholder="Жишээ: Боржигон"
                       value={formData.familyName}
                       onChange={handleChange}
                       className="w-full pl-12 pr-4 py-3 md:py-3.5 bg-slate-50/50 border border-slate-100 rounded-xl md:rounded-2xl outline-none focus:bg-white focus:border-indigo-200 transition-all text-slate-600 text-sm"
