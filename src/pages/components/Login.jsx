@@ -108,33 +108,6 @@ export default function Login() {
               Нэвтрэх
             </h2>
           </div>
-
-          {/* Switcher - SignUp-тай яг ижилхэн */}
-          <div className="flex bg-slate-100 p-1 rounded-xl md:rounded-2xl mb-6 md:mb-8">
-            <button
-              type="button"
-              onClick={() => setLoginMode("admin")}
-              className={`flex-1 py-2 md:py-2.5 rounded-lg md:rounded-xl text-[10px] md:text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
-                loginMode === "admin"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500"
-              }`}
-            >
-              Ураг үүсгэгч
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMode("member")}
-              className={`flex-1 py-2 md:py-2.5 rounded-lg md:rounded-xl text-[10px] md:text-[11px] font-bold uppercase tracking-wider transition-all duration-200 ${
-                loginMode === "member"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-500"
-              }`}
-            >
-              Ургийн гишүүн
-            </button>
-          </div>
-
           {error && (
             <div className="mb-6 p-3 md:p-4 rounded-xl md:rounded-2xl bg-red-50 border border-red-100 text-red-500 text-[11px] md:text-xs font-medium text-center animate-shake">
               {error}
@@ -143,51 +116,6 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-4">
-              {/* Dynamic Field */}
-              {loginMode === "admin" ? (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">
-                    Ургийн нэр
-                  </label>
-                  <div className="relative group">
-                    <Users
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"
-                      size={18}
-                    />
-                    <input
-                      type="text"
-                      name="familyName"
-                      placeholder="Жишээ: Алтан ураг"
-                      value={formData.familyName}
-                      onChange={handleChange}
-                      required
-                      className="w-full pl-12 pr-4 py-3 md:py-3.5 bg-slate-50/50 border border-slate-100 rounded-xl md:rounded-2xl outline-none focus:bg-white focus:border-indigo-200 transition-all text-slate-600 text-sm"
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  <label className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">
-                    Ургийн код
-                  </label>
-                  <div className="relative group">
-                    <Hash
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors"
-                      size={18}
-                    />
-                    <input
-                      type="text"
-                      name="familyCode"
-                      placeholder="Ургийн нэвтрэх код"
-                      value={formData.familyCode}
-                      onChange={handleChange}
-                      required
-                      className="w-full pl-12 pr-4 py-3 md:py-3.5 bg-slate-50/50 border border-slate-100 rounded-xl md:rounded-2xl outline-none focus:bg-white focus:border-indigo-200 transition-all text-slate-600 text-sm"
-                    />
-                  </div>
-                </div>
-              )}
-
               <div className="space-y-1.5">
                 <label className="text-[10px] md:text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">
                   Имэйл

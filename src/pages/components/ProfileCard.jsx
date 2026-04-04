@@ -22,6 +22,15 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
     setIsDeleting(true);
     try {
       const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      
+      if (!user.familyId) {
+        alert("Ургийн ID олдсонгүй. Дахин нэвтрэнэ үү.");
+        setIsDeleting(false);
+        return;
+      }
+
+      console.log("Устгаж буй ID:", _id, "Type:", typeof _id, "FamilyId:", user.familyId);
+
       const res = await fetch("/api/persons", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -32,16 +41,19 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
       });
 
       const result = await res.json();
+      console.log("API хариу:", result, "Status:", res.status);
 
       if (res.ok && result.success) {
+        console.log("Амжилттай устгалаа:", name);
         onDelete(_id);
         setIsModalOpen(false);
       } else {
-        alert(result.message || "Устгахад алдаа гарлаа.");
+        console.error("Устгахад алдаа:", result.message);
+        alert("❌ " + (result.message || "Устгахад алдаа гарлаа."));
       }
     } catch (error) {
       console.error("Delete error:", error);
-      alert("Сервертэй холбогдоход алдаа гарлаа.");
+      alert("❌ Сервертэй холбогдоход алдаа гарлаа: " + error.message);
     } finally {
       setIsDeleting(false);
     }
@@ -87,7 +99,7 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
                 className={`flex items-center justify-center gap-1 font-black ${accentColor}`}
               >
                 <span className="text-[9px] md:text-[11px] uppercase tracking-tighter">
-                  Үзэх
+                  Дэлгэрэнгүй
                 </span>
                 <ChevronRight size={10} strokeWidth={3} />
               </div>
@@ -124,42 +136,59 @@ export default function ProfileCard({ profile, onDelete, onEdit }) {
 
       {/* Delete Confirmation Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-end md:items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999] flex items-end md:items-center justify-center p-3 md:p-4 bg-black/40 backdrop-blur-sm">
           <div
-            className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
+            className="absolute inset-0"
+            onClick={() => !isDeleting && setIsModalOpen(false)}
           />
 
-          <div className="relative bg-white w-full max-w-sm rounded-[32px] md:rounded-3xl p-8 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
-            <div className="text-center space-y-4">
-              <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
-                <Trash2 size={20} />
+          <div className="relative bg-white w-full max-w-sm rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl shadow-slate-900/20 animate-in slide-in-from-bottom-4 duration-300 mx-auto">
+            <button
+              onClick={() => !isDeleting && setIsModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 transition-colors"
+              disabled={isDeleting}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="text-center space-y-4 pt-2">
+              <div className="w-12 h-12 md:w-14 md:h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
+                <Trash2 size={22} />
               </div>
 
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-900">
-                  Мэдээлэл устгах
+              <div className="space-y-1.5">
+                <h3 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">
+                  Мэдээлэл <span className="text-rose-600">устгах</span>
                 </h3>
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  <span className="font-semibold text-slate-800">"{name}"</span>
+                <p className="text-xs md:text-sm text-slate-500 leading-relaxed">
+                  <span className="font-bold text-slate-700">"{name}"</span>
+                  <br className="md:hidden" />
+                  <span className="hidden md:inline"> </span>
                   -г устгахдаа итгэлтэй байна уу?
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4 pt-4">
                 <button
                   disabled={isDeleting}
                   onClick={() => setIsModalOpen(false)}
-                  className="py-3 rounded-xl bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest"
+                  className="py-3 md:py-3.5 rounded-lg md:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Болих
                 </button>
                 <button
                   disabled={isDeleting}
                   onClick={handleDelete}
-                  className="py-3 rounded-xl bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-rose-600 transition-colors disabled:opacity-50"
+                  className="py-3 md:py-3.5 rounded-lg md:rounded-xl bg-slate-900 hover:bg-rose-600 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isDeleting ? "..." : "Устгах"}
+                  {isDeleting ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="hidden sm:inline">Хүлээлээ...</span>
+                    </>
+                  ) : (
+                    "Устгах"
+                  )}
                 </button>
               </div>
             </div>
