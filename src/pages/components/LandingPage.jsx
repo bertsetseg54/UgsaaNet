@@ -135,7 +135,7 @@ export default function LandingPage() {
       onClick={() => setIsRegisterOpen(true)}
       className={`group flex items-center gap-2 bg-slate-900 text-white 
       px-6 py-3.5 rounded-[1.8rem]
-      shadow-lg shadow-slate-200/50 hover:bg-slate-800 
+      shadow-lg shadow-slate-200/50 md:hover:bg-slate-800 active:bg-slate-800 
       transition-all active:scale-95 shrink-0 ${className}`}
     >
       <Plus size={16} strokeWidth={3} className="text-amber-400 shrink-0" />
@@ -156,7 +156,7 @@ export default function LandingPage() {
           alert("✅ Ургийн код хуулагдлаа!\n\n" + familyId);
         }
       }}
-      className={`text-[10px] md:text-[11px] uppercase font-black text-slate-500 hover:text-amber-600 transition-colors px-3 py-2 rounded-lg hover:bg-amber-50 ${className}`}
+      className={`text-[10px] md:text-[11px] uppercase font-black text-slate-500 md:hover:text-amber-600 transition-colors px-3 py-2 rounded-lg md:hover:bg-amber-50 active:bg-amber-50 ${className}`}
       title={familyId || "Loading..."}
     >
       📋 Код хуулах
@@ -175,7 +175,7 @@ export default function LandingPage() {
                 className="flex items-center gap-3 group text-amber-600"
               >
                 {/* Зөвхөн энэ икон Mobile дээр харагдана */}
-                <div className="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center transition-colors group-hover:bg-amber-200">
+                <div className="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center transition-colors md:group-hover:bg-amber-200">
                   <Fingerprint size={20} className="text-amber-500" />
                 </div>
 
@@ -227,7 +227,7 @@ export default function LandingPage() {
 
               <button
                 onClick={handleLogout}
-                className="p-2 text-slate-400 hover:text-red-500 transition-all rounded-xl hover:bg-red-50"
+                className="p-2 text-slate-400 transition-all rounded-xl md:hover:text-red-500 active:text-red-500 md:hover:bg-red-50 active:bg-red-50"
               >
                 <LogOut size={18} />
               </button>
@@ -251,7 +251,7 @@ export default function LandingPage() {
             className={`p-4 rounded-full transition-all duration-300 ${
               isActive("/story")
                 ? "text-indigo-600 bg-indigo-50/50"
-                : "text-slate-400 hover:text-slate-600"
+                : "text-slate-400 md:hover:text-slate-600 active:text-slate-600"
             }`}
           >
             <BookOpen size={22} strokeWidth={isActive("/story") ? 3 : 2} />
@@ -299,7 +299,7 @@ export default function LandingPage() {
                     {!searchQuery && (
                       <Link
                         href={`/generation/${gen}`}
-                        className="text-xs font-semibold text-slate-400 hover:text-amber-600 flex items-center gap-1 transition-colors"
+                        className="text-xs font-semibold text-slate-400 md:hover:text-amber-600 active:text-amber-600 flex items-center gap-1 transition-colors"
                       >
                         Бүгдийг харах
                         <ArrowRight size={12} />
@@ -313,7 +313,7 @@ export default function LandingPage() {
                       {groupedByGeneration[gen].map((profile) => (
                         <div
                           key={profile._id}
-                          className={`flex-none snap-start transition-all duration-300 hover:scale-[1.02] ${
+                          className={`flex-none snap-start transition-all duration-300 md:hover:scale-[1.02] ${
                             isFirstGen
                               ? "ring-2 ring-amber-100 rounded-2xl"
                               : ""
@@ -339,7 +339,7 @@ export default function LandingPage() {
           <div className="flex justify-center pt-8 pb-24">
             <button
               onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-2 px-5 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-all"
+              className="flex items-center gap-2 px-5 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-500 md:hover:bg-slate-50 active:bg-slate-50 transition-all"
             >
               {showAll ? "ХУРААХ" : "ДЭЛГЭРЭНГҮЙ ҮЗЭХ"}
               <ChevronDown size={14} className={showAll ? "rotate-180" : ""} />

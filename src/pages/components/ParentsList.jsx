@@ -58,7 +58,7 @@ const ParentsList = ({ data }) => {
               {/* Карт - Click хийхэд шилжинэ */}
               <button
                 onClick={() => router.push(`/person/${person._id}`)}
-                className="flex flex-col items-center w-28 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md active:scale-95 group text-left"
+                className="flex flex-col items-center min-w-[120px] md:w-28 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm transition-all md:hover:border-indigo-300 md:hover:shadow-md active:scale-95 group text-left"
               >
                 {/* Жижигхэн цол/нэршил */}
                 <span
@@ -71,7 +71,7 @@ const ParentsList = ({ data }) => {
 
                 {/* Дугуй зураг */}
                 <div
-                  className={`w-12 h-12 rounded-full overflow-hidden border-2 mb-2 shrink-0 transition-transform group-hover:scale-110 ${
+                  className={`w-12 h-12 rounded-full overflow-hidden border-2 mb-2 shrink-0 transition-transform md:group-hover:scale-110 ${
                     isMale ? "border-amber-100" : "border-rose-50"
                   }`}
                 >
@@ -90,7 +90,7 @@ const ParentsList = ({ data }) => {
 
                 {/* Нэр болон үе */}
                 <div className="text-center w-full">
-                  <h3 className="text-[10px] font-bold text-slate-800 truncate leading-tight group-hover:text-indigo-600">
+                  <h3 className="text-[10px] font-bold text-slate-800 truncate leading-tight md:group-hover:text-indigo-600">
                     {person.name}
                   </h3>
                   <p className="text-[8px] text-slate-400 font-medium mt-1 uppercase">
