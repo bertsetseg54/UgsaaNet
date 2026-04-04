@@ -149,11 +149,15 @@ export default function RegisterForm({
         ),
       });
       if (res.ok) {
+        alert(editData ? "✅ Мэдээлэл амжилттай шинэчлэгдлээ!" : "✅ Хүн амжилттай бүртгэгдлээ!");
         editData ? onUpdate() : onProfileAdded();
         setIsOpen(false);
+      } else {
+        alert("❌ Алдаа гарлаа. Дахин оролдоно уу.");
       }
     } catch (err) {
       console.error(err);
+      alert("❌ Сервертэй холбогдоход алдаа гарлаа.");
     } finally {
       setLoading(false);
     }
