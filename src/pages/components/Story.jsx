@@ -35,15 +35,28 @@ export default function Story() {
   const fetchStories = useCallback(async () => {
     setIsPageLoading(true);
     try {
-      const userData = localStorage.getItem("user_data");
-      if (!userData) { router.push("/start"); return; }
-      const user = JSON.parse(userData);
-      const url = user.familyId ? `/api/stories?familyId=${encodeURIComponent(user.familyId)}` : "/api/stories";
+      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      if (!user.familyId) {
+        setStories([]);
+        showToast("Family ID олдсонгүй. Та эхлээд нэвтрэнэ үү", "error");
+        return;
+      }
+      const url = `/api/stories?familyId=${encodeURIComponent(user.familyId)}`;
       const res = await fetch(url);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Stories авах үед алдаа гарлаа");
+      }
       const data = await res.json();
       setStories(Array.isArray(data) ? data : []);
-    } catch (err) { setStories([]); } finally { setIsPageLoading(false); }
-  }, [router]);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setStories([]);
+      showToast("Сервертэй холбогдоход алдаа гарлаа", "error");
+    } finally {
+      setIsPageLoading(false);
+    }
+  }, []);
 
   useEffect(() => { fetchStories(); }, [fetchStories]);
 
@@ -77,16 +90,35 @@ export default function Story() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.date) return showToast("Гарчиг болон огноог оруулна уу", "error");
-    
+    const { title, date, content } = formData;
+    if (!title || !date || !content)
+      return showToast("Мэдээллээ бүрэн бөглөнө үү", "error");
+
+    const currentUser = JSON.parse(localStorage.getItem("user_data") || "{}");
+    if (!currentUser.familyId)
+      return showToast("Family ID олдсонгүй. Та эхлээд нэвтрэнэ үү", "error");
+
     setIsSubmitLoading(true);
     try {
       let imageUrl = editingStory?.image || "";
       if (file) {
         const uploadData = new FormData();
         uploadData.append("file", file);
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadData });
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadData,
+        });
+
+        if (!uploadRes.ok) {
+          const errorPayload = await uploadRes.json().catch(() => null);
+          throw new Error(errorPayload?.error || "Зураг upload-лахад алдаа гарлаа");
+        }
+
         const uploadJson = await uploadRes.json();
+        if (!uploadJson?.url) {
+          throw new Error("Зураг серверээс буцаагдсангүй");
+        }
+
         imageUrl = uploadJson.url;
       }
 
@@ -99,7 +131,7 @@ export default function Story() {
         body: JSON.stringify({ 
           ...formData, 
           image: imageUrl,
-          familyId: JSON.parse(localStorage.getItem("user_data") || "{}").familyId
+          familyId: currentUser.familyId
         }),
       });
 

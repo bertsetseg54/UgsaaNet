@@ -39,7 +39,15 @@ export default async function handler(req, res) {
     }
 
     const fileName = path.basename(file.filepath);
-    return res.status(200).json({ url: `/uploads/${fileName}` });
+    const safeFileName = encodeURIComponent(fileName);
+    const publicUrl = `/uploads/${safeFileName}`;
+
+    // Бусад өртөөг шалгана (файл бас байгаа эсэх)
+    if (!fs.existsSync(file.filepath)) {
+      return res.status(500).json({ error: "Файл сервер дээр хадгалагдсангүй" });
+    }
+
+    return res.status(200).json({ url: publicUrl });
   } catch (error) {
     console.error("Upload error:", error);
     return res.status(500).json({ error: "Upload failed" });
