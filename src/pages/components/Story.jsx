@@ -194,7 +194,7 @@ export default function Story() {
               <span className="text-[14px] font-[1000] uppercase tracking-tighter text-amber-500">нет</span>
             </div>
           </Link>
-          <div className="flex-1 max-w-md relative hidden sm:block">
+          <div className="flex-1 max-w-md relative  sm:block">
             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" placeholder="Дурсамж хайх..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-100/50 rounded-full py-2.5 pl-11 text-sm outline-none focus:bg-white focus:ring-4 focus:ring-amber-500/10 transition-all" />
           </div>

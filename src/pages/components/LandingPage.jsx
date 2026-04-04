@@ -126,9 +126,9 @@ export default function LandingPage() {
           {/* COMPUTER RESPONSIVE: ID хуулах хэсэг */}
           <div className="hidden lg:flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 hover:bg-white transition-all">
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Ургийн код:</span>
-            <code className="text-xs font-bold text-amber-600 font-mono tracking-widest">{showFamilyId ? (familyId || "---") : "••••••••••"}</code>
-            <button 
-              onClick={() => setShowFamilyId(!showFamilyId)} 
+            <code className="text-xs font-bold text-amber-600 font-mono tracking-widest min-w-[11rem] whitespace-nowrap">{showFamilyId ? (familyId || "---") : "••••••••••"}</code>
+            <button
+              onClick={() => setShowFamilyId(!showFamilyId)}
               className="p-1.5 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-500 transition-all active:scale-90"
               title={showFamilyId ? "Нуух" : "Харагдуулах"}
             >
@@ -143,18 +143,14 @@ export default function LandingPage() {
             </button>
           </div>
 
-  const visibleGenerations = showAll
-    ? sortedGenerations
-    : sortedGenerations.slice(0, 4);
-  const RegisterButton = ({ className = "" }) => (
-    <button
-      onClick={() => setIsRegisterOpen(true)}
-      className={`group flex items-center gap-2 bg-slate-900 text-white 
-      px-6 py-3.5 rounded-[1.8rem]
-      shadow-lg shadow-slate-200/50 md:hover:bg-slate-800 active:bg-slate-800 
-      transition-all active:scale-95 shrink-0 ${className}`}
-    >
-      <Plus size={16} strokeWidth={3} className="text-amber-400 shrink-0" />
+          {/* DESKTOP: Story link */}
+          <Link 
+            href="/story" 
+            className="hidden lg:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100 hover:bg-amber-500 hover:text-white transition-all text-slate-600"
+          >
+            <BookOpen size={16} />
+            <span className="text-xs font-bold uppercase tracking-widest">Түүх</span>
+          </Link>
 
           {/* SEARCH */}
           <div className="flex-1 max-w-md relative">
@@ -168,35 +164,24 @@ export default function LandingPage() {
             />
           </div>
 
-  const ShareFamilyButton = ({ className = "" }) => (
-    <button
-      onClick={() => {
-        if (familyId) {
-          navigator.clipboard.writeText(familyId);
-          alert("✅ Ургийн код хуулагдлаа!\n\n" + familyId);
-        }
-      }}
-      className={`text-[10px] md:text-[11px] uppercase font-black text-slate-500 md:hover:text-amber-600 transition-colors px-3 py-2 rounded-lg md:hover:bg-amber-50 active:bg-amber-50 ${className}`}
-      title={familyId || "Loading..."}
-    >
-      📋 Код хуулах
-    </button>
-  );
+          <button 
+            onClick={() => { localStorage.clear(); router.push("/start"); }} 
+            className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+          >
+            <LogOut size={22} />
+          </button>
+        </div>
+      </header>
 
-  return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-3">
-          <div className="flex items-center justify-between gap-4 md:gap-8">
-            {/* LOGO ХЭСЭГ */}
-            <div className="flex items-center shrink-0">
-              <Link
-                href="/"
-                className="flex items-center gap-3 group text-amber-600"
-              >
-                {/* Зөвхөн энэ икон Mobile дээр харагдана */}
-                <div className="w-10 h-10 bg-amber-100 rounded-2xl flex items-center justify-center transition-colors md:group-hover:bg-amber-200">
-                  <Fingerprint size={20} className="text-amber-500" />
+      <main className="max-w-7xl mx-auto px-4 pt-32">
+        {/* SUMMARY & ACTION CARD */}
+        {!loading && (
+          <div className="mb-12 space-y-6">
+            {/* Main content */}
+            <div className="flex flex-col md:flex-row items-center justify-between p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm gap-6">
+              <div className="flex items-center gap-6">
+                <div className="w-16 h-16 bg-amber-50 rounded-[1.5rem] flex items-center justify-center text-amber-500 shadow-inner">
+                  <Users size={32} />
                 </div>
                 <div>
                   <h2 className="text-2xl font-[1000] text-slate-800 tracking-tight leading-none italic">Миний Ургийн бичиг</h2>
@@ -205,74 +190,56 @@ export default function LandingPage() {
                   </p>
                 </div>
               </div>
-              
               <button 
                 onClick={() => setIsRegisterOpen(true)} 
-                className="hidden lg:flex items-center justify-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 transition-all shadow-xl shadow-slate-200 active:scale-95"
+                className="hidden lg:flex w-full md:w-auto flex items-center justify-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 transition-all shadow-xl shadow-slate-200 active:scale-95"
               >
                 <Plus size={18} strokeWidth={4} /> Гишүүн нэмэх
               </button>
             </div>
             
             {/* MOBILE/TABLET: Code copy and story section */}
-            <div className="lg:hidden flex flex-col sm:flex-row items-center justify-center gap-4 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-2xl shadow-sm">
-              <div className="flex items-center justify-between gap-2 bg-white px-4 py-3 rounded-2xl border border-slate-100 shadow-sm w-full max-w-full overflow-hidden">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
-                  Ургийн код:
-                </span>
-                <code className="flex-1 text-xs font-bold text-amber-600 font-mono truncate text-center">
-                  {showFamilyId ? (familyId || "---") : "••••••••••"}
-                </code>
+            <div className="lg:hidden flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 bg-white px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm w-fit max-w-full">
+              {/* Тайлбар текст - Утсан дээр илүү жижиг */}
+              <span className="text-[12px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider sm:tracking-[0.2em] whitespace-nowrap">
+                Ургийн код:
+              </span>
 
-                <button 
-                  onClick={() => setShowFamilyId(!showFamilyId)} 
-                  className="shrink-0 p-2 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-500 transition-all active:scale-90"
-                  title={showFamilyId ? "Нуух" : "Харагдуулах"}
-                >
-                  {showFamilyId ? <Eye size={16} /> : <EyeOff size={16} />}
-                </button>
+              {/* Код - Утсан дээр бага зэрэг жижиг, monospace хэвээр */}
+              <code className="text-[15px] sm:text-sm font-bold text-amber-600 font-mono tracking-wider truncate min-w-[11rem] whitespace-nowrap">
+                {showFamilyId ? (familyId || "---") : "••••••••••"}
+              </code>
 
               <button
-                onClick={handleLogout}
-                className="p-2 text-slate-400 transition-all rounded-xl md:hover:text-red-500 active:text-red-500 md:hover:bg-red-50 active:bg-red-50"
+                onClick={() => setShowFamilyId(!showFamilyId)}
+                className="p-1.5 sm:p-2 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-500 transition-all active:scale-90 flex-shrink-0"
+                title={showFamilyId ? "Нуух" : "Харагдуулах"}
               >
-                  <BookOpen size={16} />
-                </Link>
+                {showFamilyId ? <Eye size={14} className="sm:w-4 sm:h-4" /> : <EyeOff size={14} className="sm:w-4 sm:h-4" />}
+              </button>
+
+              {/* Хуулах товч - Хэмжээ нь хэвээрээ боловч хүрээ нь илүү жижиг */}
+              <button 
+                onClick={handleCopyID} 
+                className="p-1.5 sm:p-2 hover:bg-amber-50 rounded-lg text-amber-500 transition-all active:scale-90 flex-shrink-0"
+                title="ID Хуулах"
+              >
+                {copySuccess ? (
+                  <Check size={14} strokeWidth={3} className="text-emerald-500 sm:w-4 sm:h-4" />
+                ) : (
+                  <Copy size={14} className="sm:w-4 sm:h-4" />
+                )}
+              </button>
+            </div>    
+              <Link 
+                href="/story" 
+                className="hidden lg:flex w-full md:w-auto flex items-center gap-2 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm hover:bg-amber-500 hover:text-white transition-all text-slate-600"
+              >
+                <BookOpen size={16} />
+                <span className="text-sm font-bold uppercase tracking-widest">Түүх үзэх</span>
+              </Link>
             </div>
-          </div>
-        </div>
-      </header>
-      <nav className="md:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-100">
-        <div className="bg-white/80 backdrop-blur-2xl border border-white/40 rounded-[2.5rem] p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex items-center justify-between transition-all">
-          {/* Нүүр хуудас */}
-          <Link href="/" className={"p-4  text-amber-600"}>
-            <Home size={22} />
-          </Link>
-
-          {/* Төв хэсэг: Түүх нэмэх товчлуур */}
-          <RegisterButton />
-
-          {/* Түүх намтар хуудас */}
-          <Link
-            href="/story"
-            className={`p-4 rounded-full transition-all duration-300 ${
-              isActive("/story")
-                ? "text-indigo-600 bg-indigo-50/50"
-                : "text-slate-400 md:hover:text-slate-600 active:text-slate-600"
-            }`}
-          >
-            <BookOpen size={22} strokeWidth={isActive("/story") ? 3 : 2} />
-          </Link>
-        </div>
-      </nav>
-      <main className="max-w-6xl mx-auto px-6 pt-24 pb-12">
-        {/* НИЙТ ТОО - Энгийн бөгөөд ойлгомжтой */}
-        {!loading && profiles.length > 0 && (
-          <div className="mb-6 px-1">
-            <h1 className="text-xl font-bold text-slate-800">Ургийн хэлхээ</h1>
-            <p className="text-sm text-slate-500 font-medium">
-              Нийт {profiles.length} гишүүн бүртгэлтэй байна
-            </p>
           </div>
         )}
 
@@ -326,54 +293,37 @@ export default function LandingPage() {
                            </div>
                         </div>
 
-                    {!searchQuery && (
-                      <Link
-                        href={`/generation/${gen}`}
-                        className="text-xs font-semibold text-slate-400 md:hover:text-amber-600 active:text-amber-600 flex items-center gap-1 transition-colors"
-                      >
-                        Бүгдийг харах
-                        <ArrowRight size={12} />
-                      </Link>
-                    )}
-                  </div>
+                        {/* ТҮҮХ НАМТАР ХЭСЭГ */}
+                        <div className="bg-slate-50/80 rounded-[2.5rem] p-6 mb-8 border border-slate-100/50">
+                           <div className="flex items-center gap-2 mb-3 text-slate-400">
+                              <ScrollText size={14} strokeWidth={2.5} />
+                              <span className="text-[9px] font-black uppercase tracking-widest">Намтар түүх</span>
+                           </div>
+                           <p className="text-sm text-slate-600 leading-relaxed italic line-clamp-4 font-serif">
+                             {p.bio || "Энэ гишүүний түүх намтар одоогоор бичигдээгүй байна."}
+                           </p>
+                        </div>
 
-                  {/* КАРТНУУД - Энгийн жагсаалт */}
-                  <div className="relative">
-                    <div className="flex overflow-x-auto py-2 px-1 gap-3 no-scrollbar scroll-smooth snap-x">
-                      {groupedByGeneration[gen].map((profile) => (
-                        <div
-                          key={profile._id}
-                          className={`flex-none snap-start transition-all duration-300 md:hover:scale-[1.02] ${
-                            isFirstGen
-                              ? "ring-2 ring-amber-100 rounded-2xl"
-                              : ""
-                          }`}
-                        >
-                          <ProfileCard
-                            profile={profile}
-                            onDelete={handleDeleteFromState}
-                            onEdit={handleEdit}
-                          />
+                        <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+                           <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Төрсөн: {p.birthYear || "---"}</span>
+                           <div className="flex gap-3">
+                             <button 
+                               onClick={() => { setEditingProfile(p); setIsEditOpen(true); }} 
+                               className="p-3 bg-slate-50 text-slate-400 hover:text-amber-500 hover:bg-amber-50 rounded-2xl transition-all"
+                             >
+                               <Edit3 size={18} />
+                             </button>
+                             <button className="p-3 bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all" onClick={() => handleDelete(p._id)}>
+                               <Trash2 size={18} />
+                             </button>
+                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
-
-        {/* БУСАД ҮЕИЙГ ХАРАХ ТОВЧ - Энгийн */}
-        {sortedGenerations.length > 4 && (
-          <div className="flex justify-center pt-8 pb-24">
-            <button
-              onClick={() => setShowAll(!showAll)}
-              className="flex items-center gap-2 px-5 py-2 rounded-full border border-slate-200 text-xs font-bold text-slate-500 md:hover:bg-slate-50 active:bg-slate-50 transition-all"
-            >
-              {showAll ? "ХУРААХ" : "ДЭЛГЭРЭНГҮЙ ҮЗЭХ"}
-              <ChevronDown size={14} className={showAll ? "rotate-180" : ""} />
-            </button>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
         )}
       </main>
@@ -382,9 +332,7 @@ export default function LandingPage() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-10 pt-4 bg-gradient-to-t from-white via-white/95 to-transparent">
         <div className="bg-slate-900 border border-slate-800 rounded-full p-2 shadow-2xl flex items-center justify-center gap-8">
           <Link href="/" className="p-4 text-amber-400"><Home size={24} /></Link>
-          <div clasasName="flex items-center rounded-full bg-slate-800/50 px-4 py-2">
-              <button onClick={() => setIsRegisterOpen(true)} className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full font-[1000] text-[10px] uppercase tracking-widest shadow-xl active:scale-95"><Plus size={18} strokeWidth={4} /> Гишүүн Нэмэх</button>
-          </div>
+          <button onClick={() => setIsRegisterOpen(true)} className="flex items-center gap-2 bg-amber-500 text-white px-6 py-3 rounded-full font-[1000] text-[11px] uppercase tracking-widest shadow-xl active:scale-95"><Plus size={18} strokeWidth={4} /> Гишүүн Нэмэх</button>
           <Link href="/story" className="p-4 text-white/60"><BookOpen size={24} /></Link>
         </div>
       </nav>
@@ -419,7 +367,7 @@ export default function LandingPage() {
                   </div>
                   <h3 className="text-lg font-semibold text-slate-900">Устгах баталгаажуулалт</h3>
                 </div>
-                <p className="text-slate-600 mb-6">Та энэ гишүүнийг устгахдаа итгэлтэй байна уу? Энэ үйлдлийг буцаах боломжгүй.</p>
+                <p className="text-slate-600 mb-6">Та энэ гишүүнийг устгахдаа итгэлтэй байна уу?</p>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setDeleteModal({ open: false })}
@@ -463,8 +411,9 @@ export default function LandingPage() {
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        body { background-color: #FDFDFD; }
+        body { background-color: #f8fafc; } /* Slate-50 өнгө */
       `}</style>
     </div>
   );
 }
+
