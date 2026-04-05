@@ -200,38 +200,45 @@ export default function LandingPage() {
             
             {/* MOBILE/TABLET: Code copy and story section */}
             <div className="lg:hidden flex flex-col sm:flex-row items-center justify-center gap-2 p-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 rounded-2xl shadow-sm">
-              <div className="flex items-center gap-2 sm:gap-3 bg-white px-3 py-2 sm:px-5 sm:py-3 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm w-fit max-w-full">
-              {/* Тайлбар текст - Утсан дээр илүү жижиг */}
-              <span className="text-[12px] sm:text-[10px] font-black text-slate-400 uppercase tracking-wider sm:tracking-[0.2em] whitespace-nowrap">
-                Ургийн код:
-              </span>
+              <div className="flex items-center gap-1.5 sm:gap-3 bg-white px-2.5 py-2 sm:px-5 sm:py-3 rounded-xl border border-slate-100 shadow-sm w-full sm:w-fit max-w-full overflow-hidden">
+                {/* Тайлбар текст: Утсан дээр 10px, компьютер дээр 12px */}
+                <span className="text-[10px] sm:text-[12px] font-black text-slate-400 uppercase tracking-wider sm:tracking-[0.2em] whitespace-nowrap">
+                  Ургийн код:
+                </span>
 
-              {/* Код - Утсан дээр бага зэрэг жижиг, monospace хэвээр */}
-              <code className="text-[15px] sm:text-sm font-bold text-amber-600 font-mono tracking-wider truncate min-w-[11rem] whitespace-nowrap">
-                {showFamilyId ? (familyId || "---") : "••••••••••"}
-              </code>
+                {/* Код: flex-1 ашигласнаар код урт байсан ч бусад товчнуудыг шахахгүй */}
+                <code className="flex-1 min-w-0 text-[13px] sm:text-[15px] font-bold text-amber-600 font-mono tracking-wider truncate">
+                  {showFamilyId ? (familyId || "---") : "••••••••••"}
+                </code>
 
-              <button
-                onClick={() => setShowFamilyId(!showFamilyId)}
-                className="p-1.5 sm:p-2 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-500 transition-all active:scale-90 flex-shrink-0"
-                title={showFamilyId ? "Нуух" : "Харагдуулах"}
-              >
-                {showFamilyId ? <Eye size={14} className="sm:w-4 sm:h-4" /> : <EyeOff size={14} className="sm:w-4 sm:h-4" />}
-              </button>
+                <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+                  {/* Харах товч */}
+                  <button
+                    onClick={() => setShowFamilyId(!showFamilyId)}
+                    className="p-1.5 sm:p-2 hover:bg-amber-50 rounded-lg text-slate-400 hover:text-amber-500 transition-all active:scale-95"
+                    title={showFamilyId ? "Нуух" : "Харагдуулах"}
+                  >
+                    {showFamilyId ? (
+                      <Eye size={16} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                    ) : (
+                      <EyeOff size={16} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                    )}
+                  </button>
 
-              {/* Хуулах товч - Хэмжээ нь хэвээрээ боловч хүрээ нь илүү жижиг */}
-              <button 
-                onClick={handleCopyID} 
-                className="p-1.5 sm:p-2 hover:bg-amber-50 rounded-lg text-amber-500 transition-all active:scale-90 flex-shrink-0"
-                title="ID Хуулах"
-              >
-                {copySuccess ? (
-                  <Check size={14} strokeWidth={3} className="text-emerald-500 sm:w-4 sm:h-4" />
-                ) : (
-                  <Copy size={14} className="sm:w-4 sm:h-4" />
-                )}
-              </button>
-            </div>    
+                  {/* Хуулах товч */}
+                  <button
+                    onClick={handleCopyID}
+                    className="p-1.5 sm:p-2 hover:bg-amber-50 rounded-lg text-amber-500 transition-all active:scale-95"
+                    title="ID Хуулах"
+                  >
+                    {copySuccess ? (
+                      <Check size={16} strokeWidth={3} className="text-emerald-500 w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                    ) : (
+                      <Copy size={16} className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+                    )}
+                  </button>
+                </div>
+              </div>
               <Link 
                 href="/story" 
                 className="hidden lg:flex w-full md:w-auto flex items-center gap-2 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm hover:bg-amber-500 hover:text-white transition-all text-slate-600"
