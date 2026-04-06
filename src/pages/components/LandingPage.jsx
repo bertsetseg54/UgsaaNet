@@ -57,7 +57,6 @@ export default function LandingPage() {
     }
   }, []);
 
-  // НЭМЭХ ЭСВЭЛ ЗАСАХ ҮЕД ГАРАХ МЭДЭГДЭЛ
   const handleSuccessAction = (msg) => {
     fetchProfiles();
     setIsRegisterOpen(false);
@@ -78,11 +77,22 @@ export default function LandingPage() {
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
+  // УСТГАХ БАТАЛГААЖУУЛАЛТ
   const handleDelete = (id) => {
     setAlertModal({ 
       open: true, id, type: 'confirm', 
       title: 'Устгах баталгаажуулалт', 
       message: 'Та энэ гишүүнийг устгахдаа итгэлтэй байна уу?' 
+    });
+  };
+
+  // ГАРАХ БАТАЛГААЖУУЛАЛТ
+  const handleLogoutClick = () => {
+    setAlertModal({ 
+      open: true, 
+      type: 'logout', 
+      title: 'Системээс гарах', 
+      message: 'Та системээс гарахдаа итгэлтэй байна уу?' 
     });
   };
 
@@ -96,17 +106,18 @@ export default function LandingPage() {
       });
       if ((await res.json()).success) {
         setProfiles(prev => prev.filter(p => p._id !== id));
-        // Устгасны дараа "Амжилттай" мэдэгдэл гаргах
         setAlertModal({ 
-          open: true, 
-          type: 'message', 
-          title: 'Мэдэгдэл', 
-          message: 'Амжилттай устгагдлаа' 
+          open: true, type: 'message', title: 'Мэдэгдэл', message: 'Амжилттай устгагдлаа' 
         });
       }
     } catch (err) {
       setAlertModal({ open: true, type: 'message', title: 'Алдаа', message: 'Алдаа гарлаа' });
     }
+  };
+
+  const performLogout = () => {
+    localStorage.clear();
+    router.push("/start");
   };
 
   const filteredProfiles = useMemo(() => {
@@ -158,7 +169,7 @@ export default function LandingPage() {
             />
           </div>
 
-          <button onClick={() => { localStorage.clear(); router.push("/start"); }} className="p-2 text-slate-400 hover:text-red-500">
+          <button onClick={handleLogoutClick} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
             <LogOut size={20} />
           </button>
         </div>
@@ -254,24 +265,32 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* АЛДАА БОЛОН МЭДЭГДЛИЙН МОДАЛ */}
+      {/* ШИНЭЧЛЭГДСЭН АЛДАА БОЛОН МЭДЭГДЛИЙН МОДАЛ */}
       {alertModal.open && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex flex-col items-center text-center">
-              <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 ${alertModal.type === 'confirm' ? 'bg-red-50 text-red-500' : 'bg-amber-50 text-amber-500'}`}>
-                {alertModal.type === 'confirm' ? <Trash2 size={28} /> : <Check size={28} />}
+              <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 
+                ${alertModal.type === 'message' ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'}`}>
+                {alertModal.type === 'message' ? <Check size={28} /> : 
+                 alertModal.type === 'logout' ? <LogOut size={28} /> : <Trash2 size={28} />}
               </div>
               <h3 className="text-lg font-black text-slate-800 mb-1">{alertModal.title}</h3>
               <p className="text-xs text-slate-500 mb-6 leading-relaxed">{alertModal.message}</p>
+              
               <div className="flex gap-2 w-full">
-                {alertModal.type === 'confirm' ? (
+                {alertModal.type === 'message' ? (
+                  <button onClick={() => setAlertModal({ open: false })} className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-amber-100">Ойлголоо</button>
+                ) : (
                   <>
                     <button onClick={() => setAlertModal({ open: false })} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-[10px] uppercase">Үгүй</button>
-                    <button onClick={performDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-red-100">Устгах</button>
+                    <button 
+                      onClick={alertModal.type === 'logout' ? performLogout : performDelete} 
+                      className="flex-1 py-3 bg-red-500 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-red-100"
+                    >
+                      {alertModal.type === 'logout' ? 'Гарах' : 'Устгах'}
+                    </button>
                   </>
-                ) : (
-                  <button onClick={() => setAlertModal({ open: false })} className="w-full py-3 bg-amber-500 text-white rounded-xl font-bold text-[10px] uppercase shadow-lg shadow-amber-100">Ойлголоо</button>
                 )}
               </div>
             </div>
