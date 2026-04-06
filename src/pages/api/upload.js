@@ -3,13 +3,13 @@ import fs from "fs";
 import path from "path";
 
 export const config = {
-  api: { bodyParser: false },
+  api: { bodyParser: false }, // Файл дамжуулах тул bodyParser-ийг идэвхгүй болгоно
 };
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const uploadDir = path.join(process.cwd(), "/public/uploads");
+  const uploadDir = path.join(process.cwd(), "public", "uploads");
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
@@ -17,35 +17,26 @@ export default async function handler(req, res) {
   const form = formidable({
     uploadDir,
     keepExtensions: true,
-    // formidable v3+ дээр filename функц нь ийм бүтэцтэй:
     filename: (name, ext, part) => {
-      return `${Date.now()}-${part.originalFilename}`;
+      // Файлын нэрийг давхцахгүй байх үүднээс хугацаа болон нэрийг нэгтгэнэ
+      const cleanName = part.originalFilename.replace(/[^a-zA-Z0-9.]/g, "_");
+      return `${Date.now()}-${cleanName}`;
     },
   });
 
   try {
-    // Promise ашиглаж parse хийх
-    const data = await new Promise((resolve, reject) => {
+    const { files } = await new Promise((resolve, reject) => {
       form.parse(req, (err, fields, files) => {
         if (err) reject(err);
         resolve({ fields, files });
       });
     });
 
-    // formidable v3 дээр files.file нь массив байдаг
-    const file = data.files.file?.[0] || data.files.file;
-    if (!file) {
-      return res.status(400).json({ error: "Файл олдсонгүй" });
-    }
+    const file = Array.isArray(files.file) ? files.file[0] : files.file;
+    if (!file) return res.status(400).json({ error: "Файл олдсонгүй" });
 
-    const fileName = path.basename(file.filepath);
-    const safeFileName = encodeURIComponent(fileName);
-    const publicUrl = `/uploads/${safeFileName}`;
-
-    // Бусад өртөөг шалгана (файл бас байгаа эсэх)
-    if (!fs.existsSync(file.filepath)) {
-      return res.status(500).json({ error: "Файл сервер дээр хадгалагдсангүй" });
-    }
+    // Нийтэд хандах URL
+    const publicUrl = `/uploads/${file.newFilename}`;
 
     return res.status(200).json({ url: publicUrl });
   } catch (error) {
