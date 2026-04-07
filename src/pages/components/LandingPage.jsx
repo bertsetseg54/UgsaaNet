@@ -7,7 +7,7 @@ import {
   Users, UserPlus, ArrowRight, Copy, Check, Edit3, Trash2, Eye, EyeOff, QrCode, X
 } from "lucide-react";
 import Link from "next/link";
-import { QRCodeSVG } from "qrcode.react"; // QR сан нэмэгдсэн
+import { QRCodeSVG } from "qrcode.react";
 
 export default function LandingPage() {
   const [profiles, setProfiles] = useState([]);
@@ -19,7 +19,7 @@ export default function LandingPage() {
   const [familyId, setFamilyId] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [showFamilyId, setShowFamilyId] = useState(false);
-  const [showQR, setShowQR] = useState(false); // QR харуулах state
+  const [showQR, setShowQR] = useState(false);
   
   const [alertModal, setAlertModal] = useState({ 
     open: false, id: null, type: 'confirm', message: '', title: '' 
@@ -210,7 +210,25 @@ export default function LandingPage() {
 
         {loading ? (
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+        ) : profiles.length === 0 ? (
+          /* ХҮН БАЙХГҮЙ ҮЕД ХАРАГДАХ ХЭСЭГ */
+          <div className="flex flex-col items-center justify-center py-24 px-4 bg-white border border-dashed border-slate-200 rounded-[3rem] animate-in fade-in zoom-in duration-500">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4 shadow-inner">
+              <Users size={32} />
+            </div>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Одоогоор хүн алга</h3>
+            <p className="text-[10px] text-slate-400 font-bold uppercase text-center leading-relaxed mb-6">
+              Та гэр бүлийн гишүүдээ нэмж <br/> ургийн бичгээ хөтөлж эхэлнэ үү.
+            </p>
+            <button 
+              onClick={() => setIsRegisterOpen(true)}
+              className="flex items-center gap-2 bg-amber-500 text-white px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl shadow-amber-100 active:scale-95"
+            >
+              <Plus size={16} strokeWidth={4} /> Эхний гишүүнийг нэмэх
+            </button>
+          </div>
         ) : (
+          /* ГИШҮҮДИЙН ЖАГСААЛТ */
           <div className="space-y-3"> 
             {Object.keys(groupedByGeneration).sort((a,b) => Number(a)-Number(b)).map((gen) => (
               <section key={gen}>
@@ -267,7 +285,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* QR MODAL - Нэмэгдсэн хэсэг */}
+      {/* QR MODAL */}
       {showQR && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
           <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 text-center relative">
