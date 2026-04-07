@@ -4,9 +4,10 @@ import Link from "next/link";
 import {
   Fingerprint, Search, X, Home, BookOpen, Plus, LogOut,
   Trash2, Edit3, Image as ImageIcon, ChevronLeft, ArrowRight,
-  AlertCircle, CheckCircle2, Clock, Camera, ChevronDown
+  AlertCircle, CheckCircle2, Clock, Camera, ChevronDown, Copy, Check, QrCode, Users, Share2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function Story() {
   const [stories, setStories] = useState([]);
@@ -24,6 +25,11 @@ export default function Story() {
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const [deleteModal, setDeleteModal] = useState({ open: false, id: null });
 
+  // --- QR ФУНКЦ-Д ХЭРЭГТЭЙ STATE-ҮҮД ---
+  const [userData, setUserData] = useState(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
   const fileInputRef = useRef(null);
   const router = useRouter();
 
@@ -36,6 +42,7 @@ export default function Story() {
     setIsPageLoading(true);
     try {
       const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      setUserData(user); // QR-д ашиглахын тулд userData-г хадгална
       if (!user.familyId) return router.push("/start");
       const res = await fetch(`/api/stories?familyId=${encodeURIComponent(user.familyId)}`);
       const data = await res.json();
@@ -48,6 +55,14 @@ export default function Story() {
   }, [router]);
 
   useEffect(() => { fetchStories(); }, [fetchStories]);
+
+  // --- QR КОД ХУУЛАХ ФУНКЦ ---
+  const handleCopyCode = () => {
+    if (!userData?.familyId) return;
+    navigator.clipboard.writeText(userData.familyId);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
+  };
 
   const filteredStories = useMemo(() => {
     let result = [...stories].filter(s => 
@@ -88,8 +103,6 @@ export default function Story() {
 
     try {
       let finalImageUrl = editingStory?.image || "";
-
-      // 1. Зураг сонгосон бол эхлээд УPLOAD хийнэ
       if (file) {
         const uploadData = new FormData();
         uploadData.append("file", file);
@@ -99,7 +112,6 @@ export default function Story() {
         finalImageUrl = uploadJson.url;
       }
 
-      // 2. Түүх хадгалах
       const method = editingStory ? "PUT" : "POST";
       const url = editingStory ? `/api/stories/${editingStory._id}` : `/api/stories`;
 
@@ -159,6 +171,15 @@ export default function Story() {
             <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input type="text" placeholder="Хайх..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-100/50 rounded-full py-1.5 pl-9 text-xs outline-none" />
           </div>
+
+          {/* QR ТОГЛОГЧ ТОВЧ (НЭМЭГДЛЭЭ) */}
+          <button 
+            onClick={() => setShowQRModal(true)} 
+            className="p-2 text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
+          >
+            <QrCode size={18} />
+          </button>
+
           <button onClick={() => { localStorage.clear(); router.push("/start"); }} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg"><LogOut size={18} /></button>
         </div>
       </header>
@@ -215,7 +236,34 @@ export default function Story() {
         </div>
       </nav>
 
-      {/* MODAL */}
+      {/* QR MODAL (НЭМЭГДЛЭЭ) */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 text-left">Гэр бүлийн код</h3>
+              <button onClick={() => setShowQRModal(false)} className="p-2 bg-slate-50 rounded-full text-slate-400"><X size={16} /></button>
+            </div>
+            
+            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex items-center justify-center mb-6">
+              <QRCodeSVG value={userData?.familyId || ""} size={180} level="H" />
+            </div>
+
+            <div className="flex items-center justify-between bg-slate-50 px-5 py-3 rounded-2xl mb-4">
+              <code className="text-lg font-black text-slate-800">{userData?.familyId}</code>
+              <button onClick={handleCopyCode} className="text-indigo-600">
+                {copySuccess ? <CheckCircle2 size={20} /> : <Copy size={20} />}
+              </button>
+            </div>
+            
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+              Бусад гишүүд энэ QR кодыг уншуулж <br/> таны үүсгэсэн урагт нэгдэх боломжтой
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* STORY MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="bg-white w-full max-w-lg rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">

@@ -4,9 +4,10 @@ import RegisterForm from "./RegisterForm";
 import { useRouter } from "next/navigation";
 import {
   Fingerprint, Plus, LogOut, Search, BookOpen, Home, 
-  Users, UserPlus, ArrowRight, Copy, Check, Edit3, Trash2, Eye, EyeOff
+  Users, UserPlus, ArrowRight, Copy, Check, Edit3, Trash2, Eye, EyeOff, QrCode, X
 } from "lucide-react";
 import Link from "next/link";
+import { QRCodeSVG } from "qrcode.react"; // QR сан нэмэгдсэн
 
 export default function LandingPage() {
   const [profiles, setProfiles] = useState([]);
@@ -18,6 +19,7 @@ export default function LandingPage() {
   const [familyId, setFamilyId] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const [showFamilyId, setShowFamilyId] = useState(false);
+  const [showQR, setShowQR] = useState(false); // QR харуулах state
   
   const [alertModal, setAlertModal] = useState({ 
     open: false, id: null, type: 'confirm', message: '', title: '' 
@@ -77,7 +79,6 @@ export default function LandingPage() {
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
-  // УСТГАХ БАТАЛГААЖУУЛАЛТ
   const handleDelete = (id) => {
     setAlertModal({ 
       open: true, id, type: 'confirm', 
@@ -86,7 +87,6 @@ export default function LandingPage() {
     });
   };
 
-  // ГАРАХ БАТАЛГААЖУУЛАЛТ
   const handleLogoutClick = () => {
     setAlertModal({ 
       open: true, 
@@ -153,6 +153,7 @@ export default function LandingPage() {
             <code className="text-xs font-bold text-amber-600 font-mono min-w-[8rem]">{showFamilyId ? familyId : "••••••••"}</code>
             <button onClick={() => setShowFamilyId(!showFamilyId)} className="p-1 hover:text-amber-500">{showFamilyId ? <Eye size={14} /> : <EyeOff size={14} />}</button>
             <button onClick={handleCopyID} className="p-1 hover:text-amber-500">{copySuccess ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}</button>
+            <button onClick={() => setShowQR(true)} className="p-1 hover:text-indigo-500 border-l border-slate-200 ml-1 pl-2"><QrCode size={14} /></button>
           </div>
 
           <Link href="/story" className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 hover:bg-amber-500 hover:text-white transition-all text-slate-600">
@@ -199,6 +200,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex gap-1">
                   <button onClick={() => setShowFamilyId(!showFamilyId)} className="p-2 text-slate-400">{showFamilyId ? <Eye size={18} /> : <EyeOff size={18} />}</button>
+                  <button onClick={() => setShowQR(true)} className="p-2 text-indigo-500"><QrCode size={18} /></button>
                   <button onClick={handleCopyID} className="p-2 text-amber-500">{copySuccess ? <Check size={18} /> : <Copy size={18} />}</button>
                 </div>
               </div>
@@ -265,7 +267,25 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ШИНЭЧЛЭГДСЭН АЛДАА БОЛОН МЭДЭГДЛИЙН МОДАЛ */}
+      {/* QR MODAL - Нэмэгдсэн хэсэг */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200 text-center relative">
+            <button onClick={() => setShowQR(false)} className="absolute top-6 right-6 p-2 bg-slate-50 rounded-full text-slate-400 hover:text-slate-800"><X size={18} /></button>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Ургийн QR Код</h3>
+            <div className="bg-white p-4 rounded-3xl border-4 border-slate-50 inline-block mb-6 shadow-inner">
+              <QRCodeSVG value={familyId} size={200} level="H" />
+            </div>
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-2">
+               <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Таны Ургийн Код</p>
+               <p className="text-lg font-bold text-amber-600 font-mono tracking-tighter">{familyId}</p>
+            </div>
+            <p className="text-[10px] text-slate-400 font-bold uppercase mt-4 leading-relaxed">Энэхүү кодыг уншуулж гэр бүлийн <br/> гишүүд таны үүсгэсэн урагт нэгдэнэ</p>
+          </div>
+        </div>
+      )}
+
+      {/* ALERT MODALS */}
       {alertModal.open && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl animate-in zoom-in-95 duration-200">
