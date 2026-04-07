@@ -139,12 +139,9 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-4 py-2.5">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-lg">
-              <Fingerprint size={18} strokeWidth={2.5} />
-            </div>
-            <div className="hidden xs:flex flex-col leading-none">
-              <span className="text-[10px] font-black uppercase text-slate-800 tracking-tighter">Угсаа</span>
-              <span className="text-[10px] font-black uppercase text-amber-500 tracking-tighter">нет</span>
+            <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg"><Fingerprint size={18} strokeWidth={2.5} /></div>
+            <div className="hidden sm:flex flex-col leading-[0.8] font-[1000] uppercase text-[12px]">
+               <span className="text-slate-800">Угсаа</span><span className="text-amber-500">нет</span>
             </div>
           </Link>
 
@@ -156,6 +153,10 @@ export default function LandingPage() {
             <button onClick={handleCopyID} className="p-1 hover:text-amber-500 transition-colors">{copySuccess ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}</button>
             <button onClick={() => setShowQR(true)} className="p-1 hover:text-indigo-500 border-l border-slate-200 ml-1 pl-2 transition-colors"><QrCode size={14} /></button>
           </div>
+            <Link href="/story" className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition-all">
+              <BookOpen size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Түүх</span>
+            </Link>
 
           <div className="flex-1 max-w-[200px] relative">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -167,9 +168,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-1">
-            <Link href="/story" className="hidden sm:flex p-2 text-slate-400 hover:text-amber-500 transition-colors">
-              <BookOpen size={20} />
-            </Link>
+            {/* Desktop Story Button */}
             <button onClick={handleLogoutClick} className="p-2 text-slate-400 hover:text-red-500 transition-colors shrink-0">
               <LogOut size={20} />
             </button>
