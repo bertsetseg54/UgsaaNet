@@ -251,7 +251,7 @@ export default function LandingPage() {
                            </div>
                            <div className="min-w-0 pr-6">
                              <h3 className="text-sm font-black text-slate-800 group-hover:text-amber-500 truncate leading-none">{p.name}</h3>
-                             <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest mt-1">{p.job || "Мэргэжилгүй"}</p>
+                             <p className="text-[8px] font-black text-amber-500 uppercase tracking-widest mt-1">{p.profession || "Мэргэжилгүй"}</p>
                            </div>
                         </div>
 
