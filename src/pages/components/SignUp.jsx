@@ -18,8 +18,6 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
-  // --- QR SCANNER STATE ---
   const [showScanner, setShowScanner] = useState(false);
   const [isScannerLoading, setIsScannerLoading] = useState(false);
 
@@ -88,8 +86,20 @@ export default function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     if (formData.password !== formData.confirmPassword) {
       setError("Нууц үг хоорондоо таарахгүй байна.");
+      return;
+    }
+
+    if (familyMode === "create" && !formData.familyName) {
+      setError("Ургийн нэрийг оруулна уу");
+      return;
+    }
+
+    if (familyMode === "join" && !formData.familyCode) {
+      setError("Ургийн кодыг оруулна уу");
       return;
     }
 
@@ -99,7 +109,6 @@ export default function SignUp() {
 
     try {
       setLoading(true);
-      setError("");
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -117,7 +126,7 @@ export default function SignUp() {
         setShowSuccessModal(true);
       }
     } catch (err) {
-      setError("Серверийн алдаа");
+      setError("Серверийн алдаа гарлаа. Дахин оролдоно уу.");
     } finally {
       setLoading(false);
     }
@@ -166,7 +175,7 @@ export default function SignUp() {
         </div>
       )}
 
-      {/* SUCCESS MODAL (Exist) */}
+      {/* SUCCESS MODAL */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => router.push("/")}></div>
@@ -175,31 +184,36 @@ export default function SignUp() {
               <CheckCircle2 className="text-green-500" size={36} />
             </div>
             <h3 className="text-2xl font-bold text-slate-900 mb-2">Амжилттай!</h3>
-            <button onClick={() => router.push("/")} className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl mt-4">Үргэлжлүүлэх</button>
+            <p className="text-slate-500 mb-8 text-sm">Таны бүртгэл амжилттай үүслээ.</p>
+            <button onClick={() => router.push("/")} className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all">
+              Үргэлжлүүлэх
+            </button>
           </div>
         </div>
       )}
 
       {/* MAIN FORM SECTION */}
       <div className="relative z-10 w-full max-w-lg">
-        <button onClick={() => router.push("/")} className="group mb-6 inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-all text-sm">
-          <div className="p-2 rounded-full bg-white shadow-sm border border-slate-100 group-hover:-translate-x-1 transition-all">
-            <ArrowLeft size={16} />
-          </div>
+        <button onClick={() => router.push("/")} className="group mb-6 inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition-all text-sm font-medium">
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           <span>Буцах</span>
         </button>
 
-        <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-xl border border-white p-6 md:p-10 relative">
+        <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] shadow-xl border border-white p-6 md:p-10">
           <div className="mb-8 text-center">
-            <div className="inline-flex items-center justify-center p-3 mb-4 rounded-2xl bg-indigo-50 text-indigo-500 shadow-sm">
+            <div className="inline-flex items-center justify-center p-3 mb-4 rounded-2xl bg-indigo-50 text-indigo-500">
               <Sparkles size={24} />
             </div>
             <h2 className="text-3xl font-bold text-slate-900">Шинэ бүртгэл</h2>
           </div>
 
           <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
-            <button type="button" onClick={() => setFamilyMode("create")} className={`flex-1 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${familyMode === "create" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>Шинэ ураг үүсгэх</button>
-            <button type="button" onClick={() => setFamilyMode("join")} className={`flex-1 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${familyMode === "join" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>Кодоор нэгдэх</button>
+            <button type="button" onClick={() => setFamilyMode("create")} className={`flex-1 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${familyMode === "create" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>
+              Шинэ ураг үүсгэх
+            </button>
+            <button type="button" onClick={() => setFamilyMode("join")} className={`flex-1 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${familyMode === "join" ? "bg-white text-indigo-600 shadow-sm" : "text-slate-500"}`}>
+              Кодоор нэгдэх
+            </button>
           </div>
 
           {error && <div className="mb-6 p-4 rounded-2xl bg-red-50 border border-red-100 text-red-500 text-xs font-medium text-center">{error}</div>}
