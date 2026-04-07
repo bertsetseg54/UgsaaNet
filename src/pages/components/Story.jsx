@@ -172,12 +172,6 @@ export default function Story() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setShowQRModal(true)} 
-              className="p-2 text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors"
-            >
-              <QrCode size={18} />
-            </button>
             <button onClick={() => { localStorage.clear(); router.push("/start"); }} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg"><LogOut size={18} /></button>
           </div>
         </div>
@@ -251,34 +245,6 @@ export default function Story() {
           <Link href="/story" className="p-3 text-amber-400"><BookOpen size={22} /></Link>
         </div>
       </nav>
-
-      {/* QR MODAL */}
-      {showQRModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 text-left">Гэр бүлийн код</h3>
-              <button onClick={() => setShowQRModal(false)} className="p-2 bg-slate-50 rounded-full text-slate-400"><X size={16} /></button>
-            </div>
-            
-            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex items-center justify-center mb-6">
-              <QRCodeSVG value={userData?.familyId || ""} size={180} level="H" />
-            </div>
-
-            <div className="flex items-center justify-between bg-slate-50 px-5 py-3 rounded-2xl mb-4">
-              <code className="text-lg font-black text-slate-800">{userData?.familyId}</code>
-              <button onClick={handleCopyCode} className="text-indigo-600">
-                {copySuccess ? <CheckCircle2 size={20} /> : <Copy size={20} />}
-              </button>
-            </div>
-            
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-              Бусад гишүүд энэ QR кодыг уншуулж <br/> таны үүсгэсэн урагт нэгдэх боломжтой
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* STORY MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">

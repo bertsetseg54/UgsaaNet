@@ -11,6 +11,7 @@ import {
   XCircle,
   Loader2,
   Save,
+  FileText, // Шинээр нэмэв
 } from "lucide-react";
 
 export default function RegisterForm({
@@ -41,13 +42,15 @@ export default function RegisterForm({
     deathyear: "",
     bornplace: "",
     currentplace: "",
-    profession: "",
+    job: "", // profession-ийг job болгож өөрчлөв (LandingPage-тэй ижил байх хэрэгтэй)
     barimt: "",
+    about: "", // Түүх намтар хэсэг
     spouse: { name: "", lastname: "", barimt: "" },
   };
 
   const [formData, setFormData] = useState(initialState);
 
+  // ... (Бусад useEffect функцүүд хэвээрээ)
   useEffect(() => {
     if (isOpen) {
       const rawData = localStorage.getItem("user_data");
@@ -151,7 +154,6 @@ export default function RegisterForm({
     }
   };
 
-  // Хадгалах товчийг идэвхгүй болгох нөхцөл
   const isSubmitDisabled = loading || (hasHeadOfFamily && formData.generation === "1" && !editData);
 
   if (!isOpen) return null;
@@ -400,14 +402,30 @@ export default function RegisterForm({
               )}
             </div>
 
-            {/* Profession */}
+            {/* Profession / Job */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Мэргэжил</label>
               <input
-                name="profession"
-                value={formData.profession}
+                name="job" // profession байсныг job болгож өөрчлөв
+                value={formData.job}
                 onChange={handleChange}
-                className="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-100 rounded-xl outline-none"
+                placeholder="Жишээ: Инженер"
+                className="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-100 rounded-xl outline-none focus:bg-white focus:border-amber-500"
+              />
+            </div>
+
+            {/* Biography (Namtar) - Шинээр нэмэгдсэн хэсэг */}
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 ml-1">
+                <FileText size={14} className="text-slate-400" />
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Түүх намтар</label>
+              </div>
+              <textarea
+                name="about"
+                value={formData.about}
+                onChange={handleChange}
+                placeholder="Тухайн хүний амьдралын замнал, гавьяа шагнал гэх мэт..."
+                className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-100 rounded-xl outline-none focus:bg-white focus:border-amber-500 min-h-[120px] resize-none"
               />
             </div>
           </div>
@@ -438,7 +456,7 @@ export default function RegisterForm({
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8h0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       `}</style>
     </div>
   );
