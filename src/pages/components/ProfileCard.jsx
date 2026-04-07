@@ -1,200 +1,109 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { User, Trash2, Edit, ChevronRight, X } from "lucide-react";
+import { User, Trash2, Edit, ChevronRight, ArrowRight, Users } from "lucide-react";
 
-export default function ProfileCard({ profile, onDelete, onEdit }) {
+export default function ProfileCard({ profile, profiles, onDelete, onEdit }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!profile) return null;
-  const { _id, name, parentName, gender } = profile;
-  const displayImage = profile.pic || profile.imageUrl;
+  const { _id, name, parentId, profession, pic, imageUrl } = profile;
+  const displayImage = pic || imageUrl;
+  const father = profiles?.find(f => f._id === parentId);
 
-  const isFemale = gender === "female";
-  const themeStyles = isFemale
-    ? "border-rose-50 bg-gradient-to-t from-rose-50/50 to-white shadow-rose-100/50 md:hover:border-rose-200"
-    : "border-blue-50 bg-gradient-to-t from-blue-50/50 to-white shadow-blue-100/50 md:hover:border-blue-200";
-
-  const accentColor = isFemale ? "text-rose-600" : "text-blue-600";
-  const dividerColor = isFemale ? "border-rose-100" : "border-blue-100";
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
       const user = JSON.parse(localStorage.getItem("user_data") || "{}");
-      
-      if (!user.familyId) {
-        alert("Ургийн ID олдсонгүй. Дахин нэвтрэнэ үү.");
-        setIsDeleting(false);
-        return;
-      }
-
-      console.log("Устгаж буй ID:", _id, "Type:", typeof _id, "FamilyId:", user.familyId);
-
       const res = await fetch("/api/persons", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          _id: _id.toString(),
-          familyId: user.familyId,
-        }),
+        body: JSON.stringify({ _id: _id.toString(), familyId: user.familyId }),
       });
-
-      const result = await res.json();
-      console.log("API хариу:", result, "Status:", res.status);
-
-      if (res.ok && result.success) {
-        console.log("Амжилттай устгалаа:", name);
+      if (res.ok) {
         onDelete(_id);
         setIsModalOpen(false);
-      } else {
-        console.error("Устгахад алдаа:", result.message);
-        alert("❌ " + (result.message || "Устгахад алдаа гарлаа."));
       }
     } catch (error) {
-      console.error("Delete error:", error);
-      alert("❌ Сервертэй холбогдоход алдаа гарлаа: " + error.message);
-    } finally {
-      setIsDeleting(false);
-    }
+      console.error(error);
+    } finally { setIsDeleting(false); }
   };
 
   return (
-    <>
-      <div className="group relative w-[114px] md:w-44 flex-none">
-        <Link href={`/person/${_id}`} className="block h-full">
-          <div
-            className={`relative h-full border-2 rounded-2xl p-3 flex flex-col items-center transition-all duration-300 shadow-md active:scale-95 ${themeStyles}`}
-          >
-            {/* Profile Photo */}
-            <div className="mb-3">
-              <div
-                className={`w-10 h-10 md:w-16 md:h-16 rounded-full overflow-hidden bg-white border-2 shadow-inner flex items-center justify-center ${dividerColor}`}
-              >
-                {displayImage ? (
-                  <img
-                    src={displayImage}
-                    className="w-full h-full object-cover"
-                    alt={name}
-                  />
-                ) : (
-                  <User size={24} className="text-slate-300" />
-                )}
-              </div>
-            </div>
-
-            {/* Name & Parent */}
-            <div className="text-center w-full mb-3">
-              <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate mb-1">
-                {parentName || "Тэргүүн"}
-              </p>
-              <h3 className="text-[11px] md:text-[14px] font-black text-slate-800 leading-tight truncate px-1">
-                {name}
-              </h3>
-            </div>
-
-            {/* Bottom Section */}
-            <div className={`w-full pt-2 border-t mt-auto ${dividerColor}`}>
-              <div
-                className={`flex items-center justify-center gap-1 font-black ${accentColor}`}
-              >
-                <span className="text-[9px] md:text-[11px] uppercase tracking-tighter">
-                  Дэлгэрэнгүй
-                </span>
-                <ChevronRight size={10} strokeWidth={3} />
-              </div>
-            </div>
-          </div>
+    <div className="group relative w-[165px] sm:min-w-[185px] flex-shrink-0 snap-start px-0.5">
+      {/* Үндсэн карт - Padding-ийг p-2.5 болгож багасгав */}
+      <div className="bg-white border border-slate-100 rounded-[1.8rem] p-2.5 hover:shadow-xl hover:border-amber-200 transition-all duration-300 group relative shadow-sm">
+        
+        {/* Сум - Хэмжээг нь томруулж (p-2, size-16), байрлалыг илүү тод болгов */}
+        <Link 
+          href={`/person/${_id}`} 
+          className="absolute top-2.5 right-2.5 p-2 bg-slate-50 rounded-xl text-slate-400 group-hover:bg-amber-500 group-hover:text-white group-hover:scale-110 transition-all z-10 shadow-sm"
+        >
+          <ArrowRight size={16} strokeWidth={3} />
         </Link>
+        
+        <div className="flex flex-col items-center gap-1.5">
+          {/* Профайл зураг */}
+          <div className="w-16 h-16 bg-slate-50 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+            {displayImage ? (
+              <img src={displayImage} className="w-full h-full object-cover" alt={name} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-slate-200 bg-slate-50">
+                <Users size={24} />
+              </div>
+            )}
+          </div>
 
-        {/* Action Buttons */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1.5 z-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onEdit(profile);
-            }}
-            className={`p-1.5 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm border text-slate-400 transition-all active:scale-90 ${
-              isFemale
-                ? "hover:text-rose-500 border-rose-100"
-                : "hover:text-blue-500 border-blue-100"
-            }`}
+          {/* Мэдээллийн хэсэг - Зайнуудыг (margin/gap) багасгав */}
+          <div className="text-center w-full mt-0.5 px-1">
+            <p className="text-[8px] font-black text-amber-600/80 uppercase tracking-tighter leading-none mb-1">
+              {father ? `${father.name}-ын` : (profile.parentname || "Ургийн тэргүүн")}
+            </p>
+            <h1 className="text-[11px] sm:text-[12px] font-[1000] text-slate-800 group-hover:text-amber-600 truncate uppercase italic leading-tight">
+              {name}
+            </h1>
+            <p className="text-[7px] font-black text-slate-400 uppercase mt-1 bg-slate-50/80 px-2 py-0.5 rounded-lg inline-block tracking-widest">
+              {profession || "Мэргэжил тодорхойгүй"}
+            </p>
+          </div>
+        </div>
+
+        {/* Edit/Delete товчлуурууд - Бага зэрэг дээшлүүлж цэгцлэв */}
+        <div className="absolute bottom-2.5 right-2.5 flex gap-1 opacity-0 transform translate-y-1 group-hover:translate-y-0 transition-all duration-300">
+          <button 
+            onClick={(e) => { e.preventDefault(); onEdit(profile); }} 
+            className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-amber-500 hover:border-amber-200 shadow-sm"
           >
             <Edit size={12} />
           </button>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              setIsModalOpen(true);
-            }}
-            className="p-1.5 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm border border-slate-100 text-slate-400 hover:text-rose-600 transition-all active:scale-90"
+          <button 
+            onClick={(e) => { e.preventDefault(); setIsModalOpen(true); }} 
+            className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-red-500 hover:border-red-200 shadow-sm"
           >
             <Trash2 size={12} />
           </button>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Устгах Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[999] flex items-end md:items-center justify-center p-3 md:p-4 bg-black/40 backdrop-blur-sm">
-          <div
-            className="absolute inset-0"
-            onClick={() => !isDeleting && setIsModalOpen(false)}
-          />
-
-          <div className="relative bg-white w-full max-w-sm rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl shadow-slate-900/20 animate-in slide-in-from-bottom-4 duration-300 mx-auto">
-            <button
-              onClick={() => !isDeleting && setIsModalOpen(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 transition-colors"
-              disabled={isDeleting}
-            >
-              <X size={18} />
-            </button>
-
-            <div className="text-center space-y-4 pt-2">
-              <div className="w-12 h-12 md:w-14 md:h-14 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto">
-                <Trash2 size={22} />
-              </div>
-
-              <div className="space-y-1.5">
-                <h3 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-tight">
-                  Мэдээлэл <span className="text-rose-600">устгах</span>
-                </h3>
-                <p className="text-xs md:text-sm text-slate-500 leading-relaxed">
-                  <span className="font-bold text-slate-700">"{name}"</span>
-                  <br className="md:hidden" />
-                  <span className="hidden md:inline"> </span>
-                  -г устгахдаа итгэлтэй байна уу?
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 md:gap-4 pt-4">
-                <button
-                  disabled={isDeleting}
-                  onClick={() => setIsModalOpen(false)}
-                  className="py-3 md:py-3.5 rounded-lg md:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Болих
-                </button>
-                <button
-                  disabled={isDeleting}
-                  onClick={handleDelete}
-                  className="py-3 md:py-3.5 rounded-lg md:rounded-xl bg-slate-900 hover:bg-rose-600 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isDeleting ? (
-                    <>
-                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span className="hidden sm:inline">Хүлээлээ...</span>
-                    </>
-                  ) : (
-                    "Устгах"
-                  )}
-                </button>
-              </div>
+        <div className="fixed inset-0 z-[1200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 text-center">
+          <div className="bg-white rounded-[2rem] p-6 max-w-[280px] w-full shadow-2xl border border-slate-100">
+            <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+               <Trash2 size={24} />
+            </div>
+            <h3 className="text-sm font-black text-slate-800 mb-2 uppercase italic">Гишүүн устгах</h3>
+            <p className="text-[10px] text-slate-500 font-bold uppercase mb-6 leading-relaxed">Та "{name}"-г устгахдаа итгэлтэй байна уу?</p>
+            <div className="flex gap-2">
+              <button onClick={() => setIsModalOpen(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-colors">Болих</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-200 hover:bg-red-600 transition-colors">
+                {isDeleting ? "..." : "Устгах"}
+              </button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
