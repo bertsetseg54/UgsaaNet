@@ -302,6 +302,34 @@ export default function Story() {
           </form>
         </div>
       )}
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteModal.open && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={32} />
+            </div>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-2">Устгахдаа итгэлтэй байна уу?</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed mb-6">
+              Энэ дурсамжийг устгавал дахин сэргээх боломжгүй болохыг анхаарна уу.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeleteModal({ open: false, id: null })} 
+                className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-[10px] uppercase active:scale-95 transition-all"
+              >
+                Болих
+              </button>
+              <button 
+                onClick={performDelete} 
+                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-100 active:scale-95 transition-all"
+              >
+                Устгах
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* QR MODAL (Stay the same) */}
       {showQRModal && (
