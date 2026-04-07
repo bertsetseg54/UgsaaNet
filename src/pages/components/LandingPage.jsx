@@ -19,15 +19,14 @@ export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [familyId, setFamilyId] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [showFamilyId, setShowFamilyId] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const [selectedParentId, setSelectedParentId] = useState(null);
   
-  // Хүүхдүүдийг дэлгэж харах төлөв болон Ref
   const [expandedParentId, setExpandedParentId] = useState(null);
   const expandedRef = useRef(null);
 
-  // Дэлгэгдсэн хэсэг рүү зөөлөн очих эффект
   useEffect(() => {
     if (expandedParentId && expandedRef.current) {
       setTimeout(() => {
@@ -45,6 +44,16 @@ export default function LandingPage() {
   const hasHeadOfFamily = useMemo(() => {
     return profiles.some(p => Number(p.generation) === 1);
   }, [profiles]);
+  const handleCopy = async () => {
+  try {
+    await navigator.clipboard.writeText(familyId);
+    setCopied(true);
+    // 2 секундын дараа "Хуулагдлаа" төлөвийг буцаах
+    setTimeout(() => setCopied(false), 2000);
+  } catch (err) {
+    console.error("Хуулж чадсангүй: ", err);
+  }
+};
 
   const fetchProfiles = async (fId) => {
     try {
@@ -162,71 +171,72 @@ export default function LandingPage() {
   }, [filteredProfiles]);
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-slate-900 font-sans">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-100 px-2 py-2.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-1 sm:gap-2">
+    <div className="min-h-screen bg-[#F9FAFB] text-slate-700 font-sans">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 px-3 py-2">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
             <Link href="/" onClick={() => setSelectedParentId(null)} className="flex items-center gap-2 shrink-0">
-              <div className="w-8 h-8 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-lg"><Fingerprint size={18} strokeWidth={2.5} /></div>
-                <div className="hidden sm:flex flex-col leading-[0.8] font-[1000] uppercase text-[12px]">
-                  <span className="text-slate-800">Угсаа</span><span className="text-amber-500">нет</span>
+              <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-sm"><Fingerprint size={18} strokeWidth={2.5} /></div>
+                <div className="hidden sm:flex flex-col leading-none font-bold uppercase text-[11px]">
+                  <span className="text-slate-700">Угсаа</span><span className="text-amber-500">Нет</span>
                 </div>
             </Link>
-            <div className="hidden lg:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100">
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Ургийн код</span>
-              <code className="text-xs font-bold text-amber-600 font-mono min-w-[8rem]">{showFamilyId ? familyId : "••••••••"}</code>
-              <button onClick={() => setShowFamilyId(!showFamilyId)} className="p-1 hover:text-amber-500 transition-colors">{showFamilyId ? <Eye size={14} /> : <EyeOff size={14} />}</button>
-              <button onClick={handleCopyID} className="p-1 hover:text-amber-500 transition-colors">{copySuccess ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}</button>
-              <button onClick={() => setShowQR(true)} className="p-1 hover:text-indigo-500 border-l border-slate-200 ml-1 pl-2 transition-colors"><QrCode size={14} /></button>
+            <div className="hidden lg:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shrink-0">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Ургийн Код:</span>
+                <code className="text-[10px] font-bold text-amber-600 font-mono min-w-[70px]">{showFamilyId ? familyId : "••••••"}</code>
+                <button onClick={() => setShowFamilyId(!showFamilyId)} className="text-slate-400 hover:text-amber-500">{showFamilyId ? <Eye size={12} /> : <EyeOff size={12} />}</button>
+                <button onClick={handleCopyID} className="text-slate-400 hover:text-amber-500">{copySuccess ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}</button>
+              </div>
+            
+            {/* Search + QR Center Group */}
+            <div className="flex-1 max-w-[500px] flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input type="text" placeholder="Хайх..." value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-100/80 rounded-lg py-1.5 pl-9 pr-4 text-[11px] font-bold outline-none focus:bg-white border border-transparent focus:border-amber-200 transition-all"/>
+              </div>
+              
+              {/* QR Code button - Search-ийн хажууд харагдана */}
+              <button onClick={() => setShowQR(true)} className="p-1.5 bg-slate-100 text-slate-500 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition-colors shrink-0">
+                <QrCode size={18} />
+              </button>
             </div>
-            <Link href="/story" className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-amber-50 hover:text-amber-600 transition-all">
-              <BookOpen size={16} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Түүх</span>
-            </Link>
-            <div className="flex-1 max-w-[200px] relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input type="text" placeholder="Хайх..." value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-100/60 rounded-full py-1.5 pl-9 pr-4 text-[11px] outline-none focus:bg-white border border-transparent focus:border-amber-100 transition-all"/>
-            </div>
-            <div className="flex items-center gap-1">
-              <button onClick={handleLogoutClick} className="p-2 text-slate-400 hover:text-red-500 transition-colors shrink-0">
+
+            <div className="flex items-center gap-2 shrink-0">
+              <Link href="/story" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-slate-500 hover:text-amber-600 transition-colors">
+                <BookOpen size={16} />
+                <span className="text-[12px] font-bold uppercase tracking-wider">Түүх</span>
+              </Link>
+              <button onClick={handleLogoutClick} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
                 <LogOut size={20} />
               </button>
             </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 pt-20 pb-28">
+      <main className="max-w-7xl mx-auto px-4 pt-16 pb-24">
         {selectedParentId && (
-          <div className="mb-4 flex items-center justify-between bg-amber-50 p-3 rounded-2xl border border-amber-100 animate-in fade-in slide-in-from-top-1">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-amber-600" />
-              <span className="text-[10px] font-black uppercase text-amber-800 tracking-tight">
-                {profiles.find(p => p._id === selectedParentId)?.name}-ийн хүүхдүүд
-              </span>
-            </div>
-            <button 
-              onClick={() => setSelectedParentId(null)}
-              className="px-3 py-1 bg-white rounded-lg text-[9px] font-black uppercase text-slate-500 border border-amber-200 hover:bg-amber-100 transition-colors flex items-center gap-1"
-            >
-              <X size={12} /> Буцах
-            </button>
+          <div className="mb-4 flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1">
+            <span className="text-[10px] font-bold uppercase text-slate-500 px-2 tracking-wide">
+              {profiles.find(p => p._id === selectedParentId)?.name}-ийн салбар
+            </span>
+            <button onClick={() => setSelectedParentId(null)} className="p-1 text-slate-400 hover:text-red-500 transition-colors"><X size={16} /></button>
           </div>
         )}
 
         {!loading && (
-          <div className="mb-6 space-y-3">
-            <div className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-[1.5rem] sm:rounded-[2rem] shadow-sm">
+          <div className="mb-6">
+            <div className="flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl shadow-sm">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 shrink-0">
-                  <Users size={22} />
+                <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500 shrink-0">
+                  <Users size={20} />
                 </div>
-                <div>
-                  <h2 className="text-xs sm:text-sm font-black text-slate-800 leading-tight uppercase tracking-tight italic">Миний Ураг</h2>
-                  <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-widest">Нийт {profiles.length} гишүүн</p>
+                <div className="leading-tight">
+                  <h2 className="text-[11px] font-black text-slate-800 uppercase tracking-wider">Миний Ургийн Мод</h2>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{profiles.length} гишүүн</p>
                 </div>
               </div>
-              <button onClick={() => setIsRegisterOpen(true)} className="hidden sm:flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-500 transition-all shadow-lg shadow-slate-100">
+              <button onClick={() => setIsRegisterOpen(true)} className="flex hidden lg:flex items-center justify-center gap-2 items-center gap-2 bg-amber-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all shadow-sm">
                 <Plus size={14} strokeWidth={4} /> Гишүүн нэмэх
               </button>
             </div>
@@ -234,67 +244,69 @@ export default function LandingPage() {
         )}
 
        {loading ? (
-          <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+          <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : (
-          <div> 
+          <div className="space-y-1"> 
             {Object.keys(groupedByGeneration).sort((a,b) => Number(a)-Number(b)).map((gen) => (
-              <section key={gen}>
-                <div className="flex items-center gap-2 px-2 mb-4">
-                  <div className="w-1 h-3.5 bg-amber-500 rounded-full"></div>
-                  <h2 className="font-black text-[10px] uppercase text-slate-800 tracking-wider">
-                    {gen === "1" ? "Ургийн Тэргүүн" : `${gen}-р үе`}
-                  </h2>
-                  <div className="flex-1 border-t border-slate-200"></div>
-                  <Link href={`/generation/${gen}`} className="text-amber-500 hover:text-amber-600 flex gap-1 items-center">
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Үзэх</span>
-                    <ArrowRight size={14} />
-                  </Link>
+              <section key={gen} className="relative">
+                <div className="flex justify-between items-center gap-2 px-1 mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center h-5 px-1.5 rounded bg-amber-100 text-black font-bold text-[9px] font-black">
+                      {gen}
+                    </span>
+                    <h2 className="font-bold text-[11px] uppercase text-slate-500 tracking-widest">
+                      {gen === "1" ? "Тэргүүн" : `${gen}-р үе`}
+                    </h2>
+                    <div className="flex-1 h-[1px] bg-slate-100"></div>
+                  </div>
+                  <div> 
+                    <Link href={`/generation/${gen}`} className="text-amber-500 hover:text-amber-600 flex gap-1 items-center">
+                      <span className="text-[12px] font-bold uppercase tracking-widest">Үзэх</span>
+                      <ArrowRight size={14} />
+                    </Link>
+                  </div>
                 </div>
                 
-                <div className="flex overflow-x-auto gap-3 no-scrollbar snap-x px-1 pb-4">
+                {/* Profile Grid - Padding багасгасан (gap-2) */}
+                <div className="flex overflow-x-auto gap-2 no-scrollbar snap-x px-1 pb-4">
                   {groupedByGeneration[gen].map((p) => {
                     const children = profiles.filter(c => c.parentId === p._id);
                     const isExpanded = expandedParentId === p._id;
 
                     return (
-                      <div key={p._id} className="flex flex-col items-center gap-3 shrink-0 snap-center relative">
-                        <div className="relative group">
+                      <div key={p._id} className="flex flex-col items-center shrink-0 snap-start relative">
+                        <div className={`relative transition-all duration-200 ${isExpanded ? 'z-20' : 'hover:-translate-y-0.5'}`}>
                           <ProfileCard 
                             profile={p} 
                             profiles={profiles}
                             onDelete={(id) => handleDelete(id)}
                             onEdit={(data) => { setEditingProfile(data); setIsEditOpen(true); }}
                           />
-                          
                           {children.length > 0 && (
-                            <div 
+                            <button 
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setExpandedParentId(isExpanded ? null : p._id);
                               }}
-                              className={`absolute bottom-2 right-2 p-1.5 shadow-sm rounded-lg border transition-all z-10 cursor-pointer flex flex-col items-center justify-center gap-1
-                                ${isExpanded ? 'bg-amber-500 text-white border-amber-600' : 'bg-white/90 text-amber-600 border-slate-100 hover:bg-amber-500 hover:text-white'}`}
-                              title="Хүүхдүүдийг харах"
+                              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md border shadow-sm transition-all flex items-center gap-1
+                                ${isExpanded ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-slate-400 border-slate-100 hover:text-amber-600'}`}
                             >
-                              <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
-                              <span className="text-[10px] font-bold">{children.length}</span>
-                            </div>
+                              <span className="text-[9px] font-black">{children.length}</span>
+                              <ChevronDown size={10} className={`${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
                           )}
                         </div>
 
                         {isExpanded && (
-                          <div 
-                            ref={expandedRef}
-                            className="mt-2 p-3 bg-slate-50/80 rounded-2xl border border-dashed border-slate-200 w-full min-w-[200px]"
-                          >
-                            <div className="flex flex-col gap-2">
+                          <div ref={expandedRef} className="mt-4 p-2 bg-white rounded-xl border border-slate-100 shadow-xl w-full min-w-[180px] animate-in zoom-in-95">
+                            <div className="space-y-1">
                               {children.map(child => (
-                                <div key={child._id} className="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
-                                   <div className="w-6 h-6 rounded bg-amber-100 text-amber-600 flex items-center justify-center text-[10px] font-bold">
+                                <div key={child._id} className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-transparent hover:border-amber-100">
+                                   <div className="w-6 h-6 rounded bg-white text-amber-600 flex items-center justify-center text-[10px] font-bold border border-slate-100 shrink-0">
                                      {child.name?.charAt(0)}
                                    </div>
-                                   <span className="text-[10px] font-bold text-slate-700 truncate flex-1">{child.name}</span>
-                                   <Link href={`/person/${child._id}`} className="p-1.5 bg-amber-50 text-amber-500 hover:bg-amber-500 hover:text-white rounded-lg transition-all flex items-center justify-center">
+                                   <span className="text-[9px] font-bold text-slate-600 truncate flex-1 uppercase">{child.name}</span>
+                                   <Link href={`/person/${child._id}`} className="p-1 text-slate-300 hover:text-amber-500 transition-colors">
                                     <ArrowRight size={14} />
                                   </Link>
                                 </div>
@@ -308,65 +320,74 @@ export default function LandingPage() {
                 </div>
               </section>
             ))}
-            
-            {filteredProfiles.length === 0 && (
-              <div className="text-center py-20 bg-slate-50 rounded-[2rem] border border-dashed border-slate-200">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Гишүүн олдсонгүй</p>
-              </div>
-            )}
           </div>
         )}
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white via-white/80 to-transparent">
-        <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between max-w-md mx-auto">
-          <Link href="/" onClick={() => setSelectedParentId(null)} className="p-3.5 text-amber-400"><Home size={22} /></Link>
-          <button onClick={() => setIsRegisterOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest mx-2">
+      {/* Mobile Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
+        <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
+          <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
+          <button onClick={() => setIsRegisterOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
             <Plus size={16} strokeWidth={4} /> Гишүүн Нэмэх
           </button>
-          <Link href="/story" className="p-3.5 text-white/60"><BookOpen size={22} /></Link>
+          <Link href="/story" className="p-3 text-amber-400"><BookOpen size={22} /></Link>
         </div>
       </nav>
 
+      {/* QR Code Modal - Загварыг зөөлрүүлэв */}
       {showQR && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[110] p-6">
-          <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl text-center relative">
-            <button onClick={() => setShowQR(false)} className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full text-slate-400"><X size={18} /></button>
-            <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-6">Ургийн QR Код</h3>
-            <div className="bg-white p-4 rounded-2xl border-4 border-slate-50 inline-block mb-6">
-              <QRCodeSVG value={familyId} size={180} level="H" />
-            </div>
-            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-               <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Ургийн Код</p>
-               <p className="text-sm font-bold text-amber-600 font-mono break-all">{familyId}</p>
+          <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-[110] p-6 animate-in fade-in duration-200">
+            <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl text-center relative animate-in zoom-in-95">
+              <button 
+                onClick={() => setShowQR(false)} 
+                className="absolute top-4 right-4 p-2 bg-slate-50 rounded-full text-slate-400 hover:text-red-500 transition-colors"
+              >
+                <X size={18} />
+              </button>
+
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Ургийн QR Код</h3>
+
+              <div className="bg-white p-4 rounded-2xl border-[6px] border-slate-50 inline-block mb-6">
+                <QRCodeSVG value={familyId} size={160} level="H" />
+              </div>
+
+              {/* Код дээр дарахад хуулах хэсэг */}
+              <div 
+                onClick={handleCopy}
+                className="bg-slate-50 rounded-xl p-3 border border-slate-100 cursor-pointer hover:bg-slate-100 active:scale-95 transition-all relative group"
+              >
+                <p className="text-[8px] font-bold text-slate-400 uppercase mb-1 tracking-widest flex items-center justify-center gap-1">
+                  {copied ? <span className="text-green-500">Амжилттай хуулагдлаа!</span> : "Ургийн Код (Дараад хуулна уу)"}
+                  {copied ? <Check size={10} className="text-green-500" /> : <Copy size={10} />}
+                </p>
+                <p className="text-xs font-bold text-amber-600 font-mono break-all">
+                  {familyId}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
+      {/* Alert Modal - Загварыг зөөлрүүлэв */}
       {alertModal.open && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[120] p-6">
-          <div className="bg-white rounded-[2rem] p-6 max-w-xs w-full shadow-2xl">
-            <div className="flex flex-col items-center text-center">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 
-                ${alertModal.type === 'message' ? 'bg-amber-50 text-amber-500' : 'bg-red-50 text-red-500'}`}>
-                {alertModal.type === 'message' ? <Check size={24} /> : 
-                 alertModal.type === 'logout' ? <LogOut size={24} /> : <Trash2 size={24} />}
-              </div>
-              <h3 className="text-base font-black text-slate-800 mb-1 uppercase">{alertModal.title}</h3>
-              <p className="text-[10px] font-bold text-slate-500 mb-6 uppercase">{alertModal.message}</p>
+        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-[120] p-6 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl border border-slate-50">
+            <div className="text-center">
+              <h3 className="text-xs font-black text-slate-800 mb-2 uppercase tracking-wider">{alertModal.title}</h3>
+              <p className="text-[10px] font-bold text-slate-500 mb-6 uppercase leading-relaxed">{alertModal.message}</p>
               
-              <div className="flex gap-2 w-full">
+              <div className="flex gap-2">
                 {alertModal.type === 'message' ? (
-                  <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="w-full py-3 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase">Ойлголоо</button>
+                  <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="w-full py-2.5 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase">Ойлголоо</button>
                 ) : (
                   <>
-                    <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase">Болих</button>
+                    <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="flex-1 py-2.5 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] uppercase">Болих</button>
                     <button 
                       onClick={alertModal.type === 'logout' ? performLogout : performDelete} 
-                      className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-100"
+                      className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-[10px] uppercase"
                     >
-                      {alertModal.type === 'logout' ? 'Гарах' : 'Устгах'}
+                      Тийм
                     </button>
                   </>
                 )}
@@ -376,25 +397,8 @@ export default function LandingPage() {
         </div>
       )}
 
-      {isRegisterOpen && (
-        <RegisterForm 
-          isOpen={isRegisterOpen} 
-          setIsOpen={setIsRegisterOpen} 
-          onProfileAdded={() => handleSuccessAction('Шинэ гишүүн амжилттай бүртгэгдлээ')} 
-          hasHeadOfFamily={hasHeadOfFamily}
-          familyId={familyId}
-        />
-      )}
-      {isEditOpen && (
-        <RegisterForm 
-          isOpen={isEditOpen} 
-          setIsOpen={setIsEditOpen} 
-          editData={editingProfile} 
-          onUpdate={() => handleSuccessAction('Мэдээлэл амжилттай шинэчлэгдлээ')} 
-          hasHeadOfFamily={hasHeadOfFamily}
-          familyId={familyId}
-        />
-      )}
+      {isRegisterOpen && <RegisterForm isOpen={isRegisterOpen} setIsOpen={setIsRegisterOpen} onProfileAdded={() => handleSuccessAction('Бүртгэгдлээ')} hasHeadOfFamily={hasHeadOfFamily} familyId={familyId} />}
+      {isEditOpen && <RegisterForm isOpen={isEditOpen} setIsOpen={setIsEditOpen} editData={editingProfile} onUpdate={() => handleSuccessAction('Шинэчлэгдлээ')} hasHeadOfFamily={hasHeadOfFamily} familyId={familyId} />}
     </div>
   );
 }
