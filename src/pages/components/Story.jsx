@@ -254,7 +254,7 @@ export default function Story() {
         <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
           <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
           <button onClick={() => setIsModalOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
-            <Plus size={16} strokeWidth={4} /> Түүх Нэмэх
+            <Plus size={16} strokeWidth={4} />Түүх Нэмэх
           </button>
           <Link href="/story" className="p-3 text-amber-400"><BookOpen size={22} /></Link>
         </div>
@@ -355,7 +355,7 @@ export default function Story() {
         <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
           <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
           <button onClick={() => setIsModalOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
-            <Plus size={16} strokeWidth={4} /> Нэмэх
+            <Plus size={16} strokeWidth={4} /> Түүх Нэмэх
           </button>
           <Link href="/story" className="p-3 text-amber-400"><BookOpen size={22} /></Link>
         </div>
