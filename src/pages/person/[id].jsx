@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
-import { ArrowLeft, Crown } from "lucide-react";
+import { ArrowLeft, Crown, User, BookOpen } from "lucide-react";
 import SiblingsList from "../components/SiblingsList";
 import FamilySection from "../components/FamilySection";
 import Link from "next/link";
@@ -11,7 +11,7 @@ export default function PersonProfilePage() {
   const { id } = router.query;
   
   const [person, setPerson] = useState(null);
-  const [parent, setParent] = useState(null); // Дээд үе
+  const [parent, setParent] = useState(null);
   const [siblings, setSiblings] = useState([]);
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +52,9 @@ export default function PersonProfilePage() {
 
   if (loading || !person) return <div className="p-20 text-center text-[10px] uppercase font-black text-slate-400 tracking-[0.2em] animate-pulse">Уншиж байна...</div>;
 
+  // Ургийн тэргүүн мөн эсэхийг шалгах (1-р үе эсвэл isHead flag)
+  const isHeadOfFamily = Number(person.generation) === 1 || person.isHead;
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] pt-3 px-3 antialiased">
       <div className="max-w-3xl mx-auto pb-10">
@@ -60,83 +63,96 @@ export default function PersonProfilePage() {
         </Link>
 
         {/* Profile Card */}
-        <div className={`bg-white border rounded-[2rem] overflow-hidden shadow-sm mb-4 transition-all ${person.isHead ? 'border-amber-200 ring-2 ring-amber-50' : 'border-slate-100'}`}>
-          <div className="p-5 md:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
+        <div className={`bg-white border rounded-[2.5rem] overflow-hidden shadow-sm mb-4 transition-all ${isHeadOfFamily ? 'border-amber-200 ring-4 ring-amber-50' : 'border-slate-100'}`}>
+          <div className="p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
             
             {/* Image Section */}
             <div className="shrink-0 relative">
-              <div className={`w-32 h-40 md:w-40 md:h-52 bg-slate-50 border-2 shadow-xl rounded-2xl overflow-hidden transition-all ${person.isHead ? 'border-amber-400 ring-4 ring-amber-100' : 'border-white'}`}>
-                <img src={person.pic || "/api/placeholder/160/200"} className="w-full h-full object-cover" alt={person.name} />
+              <div className={`w-36 h-48 md:w-44 md:h-56 bg-slate-50 border-4 shadow-2xl rounded-[2rem] overflow-hidden transition-all ${isHeadOfFamily ? 'border-amber-400' : 'border-white'}`}>
+                {person.pic ? (
+                  <img src={person.pic} className="w-full h-full object-cover" alt={person.name} />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                    <User size={48} />
+                  </div>
+                )}
               </div>
               
               {/* Generation Badge */}
-              <div className="absolute -bottom-2 -right-2 bg-amber-500 text-white w-9 h-9 rounded-xl flex flex-col items-center justify-center border-2 border-white shadow-lg">
-                <span className="text-[12px] font-black leading-none">{person.generation}</span>
-                <span className="text-[6px] font-black uppercase">үе</span>
+              <div className="absolute -bottom-3 -right-3 bg-slate-900 text-white w-12 h-12 rounded-2xl flex flex-col items-center justify-center border-4 border-white shadow-xl">
+                <span className="text-[14px] font-black leading-none">{person.generation}</span>
+                <span className="text-[7px] font-black uppercase opacity-60">үе</span>
               </div>
             </div>
 
             {/* Info Section */}
-            <div className="flex-1">
-              <div className="mb-4">
-                {/* Ургийн тэргүүн Badge - Нэрийн дээр */}
-                {person.isHead && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full text-[9px] font-black uppercase tracking-wider mb-2 shadow-sm animate-bounce">
-                    <Crown size={10} fill="currentColor" /> Ургийн тэргүүн
+            <div className="flex-1 w-full">
+              <div className="mb-6">
+                {/* Ургийн тэргүүн Badge */}
+                {isHeadOfFamily && (
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest mb-3 shadow-lg shadow-amber-200 animate-in fade-in zoom-in duration-500">
+                    <Crown size={12} fill="currentColor" /> Ургийн тэргүүн
                   </div>
                 )}
                 
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic leading-tight mb-1">
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase italic leading-none mb-2 tracking-tight">
                   {person.name}
                 </h1>
                 
-                <div className="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[9px] font-black uppercase tracking-tight">
-                  {person.profession || "Мэргэжилгүй"}
+                <div className="inline-block px-4 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest">
+                  {person.job || "Мэргэжилгүй"} 
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-50">
                 <InfoItem label="Төрсөн он" value={person.birthyear} />
                 <InfoItem label="Хүйс" value={person.gender === "male" ? "Эрэгтэй" : "Эмэгтэй"} />
-                <div className="col-span-2 md:col-span-1">
+                <div className="col-span-2">
                   <InfoItem label="Төрсөн нутаг" value={person.bornplace} />
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Biography */}
-          <div className="px-5 py-4 border-t border-slate-100">
-            <h2 className="text-[8px] font-black uppercase text-slate-400 mb-2 tracking-widest">Намтар түүх</h2>
-            <p className="text-[12px] leading-relaxed text-slate-700 font-serif italic">
-              {person.barimt || "Намтар түүх бүртгэгдээгүй байна."}
+          {/* Biography / Намтар */}
+          <div className="px-6 md:px-10 py-6 bg-slate-50/50 border-t border-slate-50">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen size={14} className="text-amber-500" />
+              <h2 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Намтар түүх</h2>
+            </div>
+            <p className="text-[13px] leading-relaxed text-slate-600 font-medium italic whitespace-pre-wrap">
+              {person.about || person.barimt || "Намтар түүх бүртгэгдээгүй байна."}
             </p>
           </div>
         </div>
 
         {/* Family Structure */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           
-          {/* Дээд үе (Parent) */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-             <h3 className="text-[9px] font-black uppercase text-slate-400 mb-3 tracking-[0.1em]">Дээд үе (Эцэг / Эх)</h3>
-             {parent ? (
-               <Link href={`/person/${parent._id}`} className="flex items-center gap-3 p-2 hover:bg-amber-50 rounded-xl transition-all border border-dashed border-slate-200 hover:border-amber-200 group">
-                  <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden border-2 border-white shadow-sm">
-                    <img src={parent.pic || "/api/placeholder/48/48"} alt={parent.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] font-black text-slate-800 uppercase group-hover:text-amber-700 transition-colors">{parent.name}</div>
-                    <div className="text-[9px] text-slate-400 font-bold uppercase">{parent.generation}-р үеийн төлөөлөл</div>
-                  </div>
-               </Link>
-             ) : (
-               <div className="text-[10px] text-slate-400 italic font-medium p-2">Дээд үеийн мэдээлэл бүртгэгдээгүй.</div>
-             )}
-          </div>
+          {/* Дээд үе - Хэрэв 1-р үе биш бол харуулна */}
+          {!isHeadOfFamily && (
+            <div className="bg-white border border-slate-100 rounded-[1.5rem] p-5 shadow-sm">
+               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-2">
+                 <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" /> Дээд үе (Эцэг / Эх)
+               </h3>
+               {parent ? (
+                 <Link href={`/person/${parent._id}`} className="flex items-center gap-4 p-3 hover:bg-amber-50 rounded-2xl transition-all border border-slate-100 hover:border-amber-200 group">
+                    <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden border-2 border-white shadow-md">
+                      <img src={parent.pic || "/api/placeholder/56/56"} alt={parent.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <div className="text-[12px] font-black text-slate-800 uppercase group-hover:text-amber-700 transition-colors tracking-tight">{parent.name}</div>
+                      <div className="text-[9px] text-slate-400 font-bold uppercase mt-0.5">{parent.generation}-р үеийн төлөөлөл</div>
+                    </div>
+                 </Link>
+               ) : (
+                 <div className="text-[10px] text-slate-400 italic font-medium p-2 bg-slate-50 rounded-xl text-center">Дээд үеийн мэдээлэл бүртгэгдээгүй.</div>
+               )}
+            </div>
+          )}
 
           {/* Доод үе болон Ах дүүс */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FamilyBlock title="Ах дүүс" count={siblings.length}>
               <SiblingsList data={siblings} />
             </FamilyBlock>
@@ -154,20 +170,20 @@ export default function PersonProfilePage() {
 function InfoItem({ label, value }) {
   return (
     <div>
-      <label className="block text-[8px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">{label}</label>
-      <p className="text-[12px] font-black text-slate-800">{value || "---"}</p>
+      <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 opacity-70">{label}</label>
+      <p className="text-[14px] font-bold text-slate-800">{value || "---"}</p>
     </div>
   );
 }
 
 function FamilyBlock({ title, count, children }) {
   return (
-    <section className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex justify-between items-center mb-3 border-b border-slate-50 pb-2">
-        <h3 className="text-[9px] font-black uppercase text-slate-800 tracking-wider">{title}</h3>
-        <span className="px-2 py-0.5 bg-slate-50 text-slate-400 rounded text-[8px] font-bold">{count}</span>
+    <section className="bg-white border border-slate-100 rounded-[1.5rem] p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-center mb-4 border-b border-slate-50 pb-3">
+        <h3 className="text-[10px] font-black uppercase text-slate-800 tracking-widest">{title}</h3>
+        <span className="px-2.5 py-1 bg-slate-900 text-white rounded-lg text-[9px] font-black">{count}</span>
       </div>
-      <div className="min-h-[50px]">
+      <div className="min-h-[60px]">
         {children}
       </div>
     </section>

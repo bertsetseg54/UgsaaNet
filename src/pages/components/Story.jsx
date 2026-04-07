@@ -186,9 +186,7 @@ export default function Story() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowLogoutConfirm(true)} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg transition-colors">
-               <LogOut size={18} />
-            </button>
+            <button onClick={() => { localStorage.clear(); router.push("/start"); }} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg"><LogOut size={18} /></button>
           </div>
         </div>
       </header>
@@ -251,41 +249,17 @@ export default function Story() {
         )}
       </main>
 
-      {/* LOGOUT CONFIRM MODAL */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-sm rounded-[2rem] p-8 text-center shadow-2xl animate-in zoom-in-95">
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <LogOut size={32} />
-            </div>
-            <h3 className="text-lg font-black text-slate-900 uppercase mb-2">Гарах уу?</h3>
-            <p className="text-slate-500 text-[10px] font-bold uppercase mb-8">Та системээс гарахад <br/> итгэлтэй байна уу?</p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase">Болих</button>
-              <button onClick={handleLogout} className="flex-1 py-3.5 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-red-100">Тийм, Гаръя</button>
-            </div>
-          </div>
+      {/* MOBILE NAV */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
+        <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
+          <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
+          <button onClick={() => setIsModalOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
+            <Plus size={16} strokeWidth={4} /> Түүх Нэмэх
+          </button>
+          <Link href="/story" className="p-3 text-amber-400"><BookOpen size={22} /></Link>
         </div>
-      )}
-
-      {/* DELETE MODAL */}
-      {deleteModal.open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[400] backdrop-blur-sm">
-          <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full mx-4 shadow-2xl text-center">
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 size={32} />
-            </div>
-            <h3 className="text-lg font-black text-slate-900 mb-2 uppercase">Устгах уу?</h3>
-            <p className="text-slate-500 text-xs mb-8 leading-relaxed font-bold uppercase">Энэ дурсамжийг устгавал <br/> дахин сэргээх боломжгүй.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setDeleteModal({ open: false })} className="flex-1 py-3.5 text-[9px] font-black uppercase bg-slate-100 text-slate-500 rounded-xl">Үгүй</button>
-              <button onClick={performDelete} className="flex-1 py-3.5 text-[9px] font-black uppercase bg-red-500 text-white rounded-xl">Тийм, Устга</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STORY MODAL & OTHER MODALS (QR etc.) - Keep as is but ensured style consistency */}
+      </nav>
+      {/* STORY MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="bg-white w-full max-w-lg rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
