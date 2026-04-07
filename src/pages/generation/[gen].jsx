@@ -1,19 +1,22 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
+import { useParams, useRouter } from "next/navigation"; // App Router ашиглаж байгаа бол useParams илүү тохиромжтой
 import {
   ChevronLeft,
-  SearchX,
   ChevronDown,
   ChevronUp,
   Users,
+  SearchX,
+  ArrowLeft
 } from "lucide-react";
 import Link from "next/link";
 import ProfileCard from "../components/ProfileCard";
 
 export default function GenerationPage() {
   const router = useRouter();
-  const { gen } = router.query;
+  const params = useParams();
+  const gen = params?.gen; // Dynamic route-оос gen-ийг авах
+
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -25,17 +28,21 @@ export default function GenerationPage() {
     const fetchGenProfiles = async () => {
       try {
         setLoading(true);
-        const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+        const stored = localStorage.getItem("user_data");
+        const user = stored ? JSON.parse(stored) : {};
+        
         const url = user.familyId
           ? `/api/persons?familyId=${encodeURIComponent(user.familyId)}`
           : "/api/persons";
+          
         const res = await fetch(url);
         const data = await res.json();
+        
         if (data.success) {
           const filtered = data.data.filter(
             (p) => Number(p.generation) === Number(gen)
           );
-          filtered.sort((a, b) => a.name.localeCompare(b.name));
+          filtered.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
           setProfiles(filtered);
         }
       } catch (err) {
@@ -52,58 +59,62 @@ export default function GenerationPage() {
     : profiles.slice(0, INITIAL_DISPLAY_COUNT);
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] flex flex-col pb-24 md:pb-12">
-      {/* HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-3 md:px-8 py-4 flex items-center justify-between gap-3">
+    <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
+      {/* Header - Илүү цэвэрхэн, Glassmorphism эффекттэй */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100/80">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 p-2 -ml-2 text-slate-400 hover:text-amber-600 transition-colors"
+            className="group flex items-center gap-2 text-slate-500 hover:text-amber-600 transition-all"
           >
-            <ChevronLeft size={22} strokeWidth={2.5} />
+            <div className="p-2 rounded-full group-hover:bg-amber-50 transition-colors">
+              <ArrowLeft size={20} />
+            </div>
+            <span className="hidden sm:inline text-sm font-medium">Буцах</span>
           </button>
 
-          <div className="flex-1 flex flex-col items-center">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl md:text-3xl font-light text-slate-300 font-serif leading-none">
-                {gen && (gen < 10 ? `0${gen}` : gen)}
+          <div className="flex flex-col items-center">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-black text-slate-200 font-mono tracking-tighter">
+                {gen?.toString().padStart(2, '0')}
               </span>
-              <div className="flex flex-col items-start leading-tight">
-                <h1 className="text-sm md:text-base font-black text-slate-900">
-                  Үеийнхэн
+              <div className="h-8 w-[1px] bg-slate-200 hidden sm:block"></div>
+              <div className="text-center sm:text-left">
+                <h1 className="text-sm sm:text-base font-black text-slate-800 uppercase tracking-tight">
+                  {gen}-р үеийнхэн
                 </h1>
-                <span className="text-[7px] md:text-[9px] font-bold text-amber-600 uppercase tracking-widest">
-                  Үе {gen}
-                </span>
+                <p className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em] leading-none">
+                   Нийт {profiles.length} гишүүн
+                </p>
               </div>
             </div>
-            {profiles.length > 0 && (
-              <div className="mt-1 text-[8px] md:text-[10px] text-slate-400 font-medium">
-                {profiles.length} гишүүн
-              </div>
-            )}
           </div>
 
-          <div className="w-10" />
+          <div className="w-10 sm:w-20" /> {/* Balance spacer */}
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto w-full px-3 md:px-8 pt-20 md:pt-24">
+      <main className="max-w-7xl mx-auto w-full px-4 pt-8 pb-24">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32">
-            <div className="w-8 h-8 border-2 border-slate-100 border-t-amber-500 rounded-full animate-spin mb-4" />
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Уншиж байна...
+          <div className="flex flex-col items-center justify-center py-40">
+            <div className="relative">
+              <div className="w-12 h-12 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+              </div>
+            </div>
+            <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+              Ургийн хэлхээг уншиж байна
             </p>
           </div>
         ) : profiles.length > 0 ? (
           <div className="flex flex-col items-center">
-            {/* Grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 md:gap-4 w-full">
+            {/* Grid - Card хоорондын зайг илүү агаартай болгосон */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 w-full">
               {displayedProfiles.map((profile) => (
                 <div
                   key={profile._id}
-                  className="w-full flex justify-center"
+                  className="w-full flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-500"
                 >
                   <ProfileCard
                     profile={profile}
@@ -114,62 +125,57 @@ export default function GenerationPage() {
               ))}
             </div>
 
-            {/* Expand Button */}
+            {/* Expand Button - Илүү минимал */}
             {profiles.length > INITIAL_DISPLAY_COUNT && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-8 md:mt-12 flex flex-col items-center gap-3 group transition-all"
+                className="mt-16 group relative flex items-center gap-3 px-8 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-200 transition-all active:scale-95"
               >
-                <div className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-full shadow-md hover:border-amber-400 hover:text-amber-600 hover:shadow-lg transition-all">
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    {isExpanded
-                      ? "Хураах"
-                      : `Бүх хүнийг үзэх (${profiles.length})`}
-                  </span>
-                  {isExpanded ? (
-                    <ChevronUp size={14} strokeWidth={3} />
-                  ) : (
-                    <ChevronDown size={14} strokeWidth={3} />
-                  )}
+                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                  {isExpanded
+                    ? "Хураах"
+                    : `Бүх хүнийг харах (${profiles.length})`}
+                </span>
+                <div className={`text-amber-500 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                  <ChevronDown size={16} strokeWidth={3} />
                 </div>
               </button>
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 md:py-32 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl md:rounded-2xl border border-dashed border-slate-200 px-4 md:px-6">
-            <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-lg md:rounded-xl shadow-sm flex items-center justify-center mb-4">
-              <Users size={28} className="text-slate-300" />
+          /* Empty State - Илүү гоёмсог */
+          <div className="max-w-md mx-auto flex flex-col items-center justify-center py-24 px-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm text-center">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+              <SearchX size={40} className="text-slate-300" />
             </div>
-            <h3 className="text-slate-800 font-bold text-xs md:text-sm tracking-wider text-center uppercase">
+            <h3 className="text-slate-800 font-black text-lg uppercase tracking-tight">
               Мэдээлэл олдсонгүй
             </h3>
-            <p className="text-slate-400 text-[9px] md:text-xs mt-2 text-center">
-              Энэ үед одоогоор бүртгэлтэй хүн байхгүй байна.
+            <p className="text-slate-500 text-sm mt-3 leading-relaxed">
+              Энэ үед одоогоор бүртгэлтэй хүн байхгүй байна. Та шинээр гишүүн нэмэх боломжтой.
             </p>
             <Link
               href="/"
-              className="mt-6 px-6 py-2.5 md:py-3 bg-amber-600 text-white text-[9px] md:text-xs font-bold uppercase tracking-wide rounded-lg md:rounded-xl hover:bg-amber-700 transition-colors active:scale-95"
+              className="mt-8 w-full py-4 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-amber-500 transition-colors shadow-lg shadow-slate-200 active:scale-[0.98]"
             >
-              Нүүр хуудас
+              Нүүр хуудас руу буцах
             </Link>
           </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="w-full py-6 md:py-8 border-t border-slate-100 bg-white mt-auto">
-        <div className="max-w-6xl mx-auto px-3 md:px-8 flex flex-col items-center gap-1">
-          <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-            © 2026 UgsaaNet Digital Archive
+      {/* Footer - Минимал */}
+      <footer className="mt-auto py-12 border-t border-slate-100 bg-white">
+        <div className="max-w-6xl mx-auto px-8 flex flex-col items-center">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+            <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">UgsaaNet</span>
+          </div>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+            Дижитал Ургийн Бичиг • 2026
           </p>
         </div>
       </footer>
-
-      <style jsx global>{`
-        .safe-bottom {
-          padding-bottom: max(1rem, env(safe-area-inset-bottom));
-        }
-      `}</style>
     </div>
   );
 }

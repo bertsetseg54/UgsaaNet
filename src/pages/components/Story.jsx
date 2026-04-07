@@ -155,7 +155,7 @@ export default function Story() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] pb-20 relative font-sans">
+    <div className="min-h-screen bg-[#FDFDFD] pb-20 relative font-sans shadow-xl">
       {/* TOAST */}
       {toast.show && (
         <div className={`fixed top-20 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-2 px-4 py-2 rounded-xl shadow-xl border backdrop-blur-md ${toast.type === "error" ? "bg-red-50 text-red-600 border-red-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"}`}>
