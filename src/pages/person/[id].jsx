@@ -77,9 +77,7 @@ export default function PersonProfilePage() {
 
   const closeSuccessModal = () => {
     setSuccessModal({ ...successModal, open: false });
-    if (successModal.type === "delete") {
-      router.push("/landingPage");
-    }
+    if (successModal.type === "delete") router.push("/landingPage");
   };
 
   if (loading || !person) return <div className="p-20 text-center text-[10px] font-black text-slate-400 animate-pulse uppercase tracking-[0.2em]">Уншиж байна...</div>;
@@ -95,19 +93,11 @@ export default function PersonProfilePage() {
           </Link>
           
           <div className="flex gap-2 w-full sm:w-auto">
-            <button 
-              onClick={() => setIsEditOpen(true)} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 hover:border-amber-400 hover:text-amber-600 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all active:scale-95"
-            >
-              <Edit3 size={15} />
-              <span>Засах</span>
+            <button onClick={() => setIsEditOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 hover:border-amber-400 hover:text-amber-600 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all">
+              <Edit3 size={15} /> <span>Засах</span>
             </button>
-            <button 
-              onClick={() => setIsDeleteModalOpen(true)} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-red-500 hover:border-red-200 hover:bg-red-50 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all active:scale-95"
-            >
-              <Trash2 size={15} />
-              <span>Устгах</span>
+            <button onClick={() => setIsDeleteModalOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-red-500 hover:border-red-200 hover:bg-red-50 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all">
+              <Trash2 size={15} /> <span>Устгах</span>
             </button>
           </div>
         </div>
@@ -117,21 +107,51 @@ export default function PersonProfilePage() {
           <div className="p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
             <div className="shrink-0 relative">
               <div className={`w-36 h-48 md:w-44 md:h-56 bg-slate-50 border-4 shadow-2xl rounded-[2rem] overflow-hidden ${Number(person.generation) === 1 ? 'border-amber-400' : 'border-white'}`}>
-                {person.pic ? <img src={person.pic} className="w-full h-full object-cover" alt={person.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={48} /></div>}
+                {person.pic || person.imageUrl ? <img src={person.pic || person.imageUrl} className="w-full h-full object-cover" alt={person.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={48} /></div>}
               </div>
               <div className="absolute -bottom-3 -right-3 bg-slate-900 text-white w-12 h-12 rounded-2xl flex flex-col items-center justify-center border-4 border-white shadow-xl font-black">
                 <span className="text-[14px]">{person.generation}</span><span className="text-[7px] uppercase opacity-60">үе</span>
               </div>
             </div>
+
             <div className="flex-1 w-full">
-              {Number(person.generation) === 1 && <div className="inline-flex gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-full text-[10px] font-black uppercase mb-3 shadow-lg shadow-amber-200"><Crown size={12} fill="currentColor" /> Ургийн тэргүүн</div>}
+              <div className="flex flex-wrap gap-2 mb-3 justify-center md:justify-start">
+                {Number(person.generation) === 1 && <div className="inline-flex gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-full text-[10px] font-black uppercase shadow-lg shadow-amber-200"><Crown size={12} fill="currentColor" /> Ургийн тэргүүн</div>}
+                {person.deathyear && <div className="inline-flex gap-2 px-4 py-1.5 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase"><Cross size={12} /> Буяны үйлс</div>}
+              </div>
+              
               <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase italic mb-2 tracking-tight">{person.name}</h1>
               <div className="inline-block px-4 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase mb-6 tracking-[0.1em]">{person.job || "Мэргэжилгүй"}</div>
+              
               <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-50 text-left">
-                <InfoItem label="Төрсөн он" value={person.birthyear} /><InfoItem label="Хүйс" value={person.gender === "male" ? "Эрэгтэй" : "Эмэгтэй"} /><div className="col-span-2"><InfoItem label="Төрсөн нутаг" value={person.bornplace} /></div>
+                <InfoItem icon={<Calendar size={12} />} label="Хугацаа" value={`${person.birthyear || "????"} ${person.deathyear ? ` - ${person.deathyear}` : ""}`} />
+                <InfoItem label="Хүйс" value={person.gender === "male" ? "Эрэгтэй" : "Эмэгтэй"} />
+                <InfoItem label="Төрсөн нутаг" value={person.bornplace} />
+                <InfoItem 
+                  label={person.deathyear ? "Нас барсан хаяг" : "Одоогийн хаяг"} 
+                  value={person.currentplace} 
+                  highlight={person.deathyear}
+                />
               </div>
             </div>
           </div>
+
+          {/* Гэр бүлийн хүн - Spouse section */}
+          {person.spouse && person.spouse.name && (
+            <div className="px-6 md:px-10 py-5 bg-rose-50/40 border-t border-rose-100/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-rose-500 shadow-sm border border-rose-100">
+                  <Heart size={18} fill="currentColor" />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Гэр бүлийн хүн</label>
+                  <p className="text-[13px] font-black text-rose-900 uppercase italic leading-none">{person.spouse.lastname} {person.spouse.name}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Намтар түүх */}
           <div className="px-6 md:px-10 py-6 bg-slate-50/50 border-t border-slate-100">
             <div className="flex items-center gap-2 mb-3"><BookOpen size={14} className="text-amber-500" /><h2 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em]">Намтар түүх</h2></div>
             <p className="text-[13px] leading-relaxed text-slate-600 font-medium italic whitespace-pre-wrap">{person.about || person.barimt || "Намтар түүх бүртгэгдээгүй байна."}</p>
@@ -240,8 +260,12 @@ export default function PersonProfilePage() {
 function InfoItem({ label, value }) {
   return (
     <div className="group">
-      <label className="block text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-widest opacity-80">{label}</label>
-      <p className="text-[14px] font-bold text-slate-800 group-hover:text-amber-600 transition-colors">{value || "---"}</p>
+      <label className={`block text-[9px] font-black uppercase mb-1.5 tracking-widest opacity-80 ${highlight ? 'text-red-400' : 'text-slate-400'}`}>
+        {label}
+      </label>
+      <p className={`text-[13px] font-bold transition-colors ${highlight ? 'text-red-700' : 'text-slate-800 group-hover:text-amber-600'}`}>
+        {value || "---"}
+      </p>
     </div>
   );
 }

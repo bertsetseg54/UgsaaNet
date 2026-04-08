@@ -8,10 +8,9 @@ import {
   History,
   Info,
   CalendarDays,
-  XCircle,
   Loader2,
   Save,
-  FileText, // Шинээр нэмэв
+  FileText,
 } from "lucide-react";
 
 export default function RegisterForm({
@@ -42,15 +41,14 @@ export default function RegisterForm({
     deathyear: "",
     bornplace: "",
     currentplace: "",
-    job: "", // profession-ийг job болгож өөрчлөв (LandingPage-тэй ижил байх хэрэгтэй)
+    job: "",
     barimt: "",
-    about: "", // Түүх намтар хэсэг
+    about: "",
     spouse: { name: "", lastname: "", barimt: "" },
   };
 
   const [formData, setFormData] = useState(initialState);
 
-  // ... (Бусад useEffect функцүүд хэвээрээ)
   useEffect(() => {
     if (isOpen) {
       const rawData = localStorage.getItem("user_data");
@@ -125,7 +123,7 @@ export default function RegisterForm({
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
     const user = JSON.parse(localStorage.getItem("user_data") || "{}");
     const finalData = {
@@ -307,7 +305,7 @@ export default function RegisterForm({
                     {isDeceased ? "Нас барсан" : "Мэнд сэрүүн"}
                   </span>
                   <div className={`w-8 h-4 rounded-full relative ${isDeceased ? "bg-slate-400" : "bg-green-500"}`}>
-                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDeceased ? "left-4.5" : "left-0.5"}`} />
+                    <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDeceased ? "right-0.5" : "left-0.5"}`} />
                   </div>
                 </button>
               </div>
@@ -354,12 +352,16 @@ export default function RegisterForm({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Одоогийн хаяг</label>
+                {/* Хэрэв нас барсан бол "Амьдарч байсан хаяг" болж өөрчлөгдөнө */}
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+                  {isDeceased ? "Амьдарч байсан хаяг" : "Одоогийн хаяг"}
+                </label>
                 <input
                   name="currentplace"
                   value={formData.currentplace}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-100 rounded-xl outline-none"
+                  placeholder={isDeceased ? "Амьдарч байсан газар..." : "Одоогийн хаяг..."}
+                  className="w-full px-4 py-2 text-sm bg-slate-50 border border-slate-100 rounded-xl outline-none focus:bg-white focus:border-amber-500"
                 />
               </div>
             </div>
@@ -406,7 +408,7 @@ export default function RegisterForm({
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Мэргэжил</label>
               <input
-                name="job" // profession байсныг job болгож өөрчлөв
+                name="job"
                 value={formData.job}
                 onChange={handleChange}
                 placeholder="Жишээ: Инженер"
@@ -414,7 +416,7 @@ export default function RegisterForm({
               />
             </div>
 
-            {/* Biography (Namtar) - Шинээр нэмэгдсэн хэсэг */}
+            {/* Biography */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5 ml-1">
                 <FileText size={14} className="text-slate-400" />
@@ -432,7 +434,7 @@ export default function RegisterForm({
         </form>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/80">
+        <div className="px-6 py-4 border-t border-slate-100 flex items-center gap-3 bg-slate-50/80 shrink-0">
           <button
             type="button"
             onClick={() => setIsOpen(false)}
