@@ -27,6 +27,38 @@ export default function LandingPage() {
   const [expandedParentId, setExpandedParentId] = useState(null);
   const expandedRef = useRef(null);
 
+  // --- ШИНЭ ФУНКЦҮҮД ЭНДЭЭС ЭХЭЛЖ БАЙНА ---
+  
+  // 1. Карт дээр дарахад ажиллах функц
+  const handleCardClick = (profileId) => {
+    // Хэрэв аль хэдийн сонгогдсон хүн дээр дараад байвал сонголтыг цуцална
+    if (expandedParentId === profileId) {
+      setExpandedParentId(null);
+    } else {
+      setExpandedParentId(profileId);
+    }
+  };
+
+  // 2. Сонгогдсон хүний хүүхэд мөн эсэхийг шалгах туслах функц
+  const isChildOfSelected = (child, allProfiles, selectedId) => {
+    if (!selectedId) return true; // Юу ч сонгогдоогүй бол бүгдийг харуулна
+    
+    const selectedPerson = allProfiles.find(p => p._id === selectedId);
+    if (!selectedPerson) return true;
+
+    // Тухайн гишүүн сонгогдсон хүнээс өөр үеийнх бол харуулна
+    if (Number(child.generation) <= Number(selectedPerson.generation)) return true;
+
+    // Хэрэв дараагийн үеийнх бол зөвхөн тухайн хүний хүүхдүүдийг харуулна
+    if (Number(child.generation) === Number(selectedPerson.generation) + 1) {
+      return child.parentId === selectedId;
+    }
+
+    return true;
+  };
+
+  // --- ШИНЭ ФУНКЦҮҮД ДУУСЛАА ---
+
   useEffect(() => {
     if (expandedParentId && expandedRef.current) {
       setTimeout(() => {
@@ -156,10 +188,12 @@ export default function LandingPage() {
     if (selectedParentId) {
       result = profiles.filter(p => p.parentId === selectedParentId);
     }
+    // Сонгогдсон хүний хүүхдүүдийг шүүх логикийг энд нэмлээ
     return result.filter((p) => 
-      (p.name || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (p.name || "").toLowerCase().includes(searchQuery.toLowerCase()) &&
+      isChildOfSelected(p, profiles, expandedParentId)
     );
-  }, [profiles, searchQuery, selectedParentId]);
+  }, [profiles, searchQuery, selectedParentId, expandedParentId]);
 
   const groupedByGeneration = useMemo(() => {
     return filteredProfiles.reduce((acc, p) => {
@@ -174,7 +208,7 @@ export default function LandingPage() {
     <div className="min-h-screen bg-[#F9FAFB] text-slate-700 font-sans">
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 px-3 py-2">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            <Link href="/" onClick={() => setSelectedParentId(null)} className="flex items-center gap-2 shrink-0">
+            <Link href="/" onClick={() => {setSelectedParentId(null); setExpandedParentId(null);}} className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-sm"><Fingerprint size={18} strokeWidth={2.5} /></div>
                 <div className="hidden sm:flex flex-col leading-none font-bold uppercase text-[11px]">
                   <span className="text-slate-700">Угсаа</span><span className="text-amber-500">Нет</span>
@@ -254,7 +288,7 @@ export default function LandingPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-1"> 
+          <div className="flex flex-col"> 
             {Object.keys(groupedByGeneration).sort((a,b) => Number(a)-Number(b)).map((gen) => (
               <section key={gen} className="relative">
                 <div className="flex justify-between items-center gap-2 px-1 mb-3">
@@ -276,51 +310,47 @@ export default function LandingPage() {
                 </div>
                 
                 <div className="flex overflow-x-auto gap-2 no-scrollbar snap-x px-1 pb-4">
-                  {groupedByGeneration[gen].map((p) => {
+                 {groupedByGeneration[gen].map((p) => {
                     const children = profiles.filter(c => c.parentId === p._id);
                     const isExpanded = expandedParentId === p._id;
 
+                    // 1. Өөрөө сонгогдсон хүн мөн эсэх
+                    // 2. Сонгогдсон хүний хүүхэд мөн эсэхийг шалгана
+                    const isRelatedToSelection = expandedParentId === p._id || p.parentId === expandedParentId;
+
                     return (
-                      <div key={p._id} className="flex flex-col items-center shrink-0 snap-start relative">
-                        <div className={`relative transition-all duration-200 ${isExpanded ? 'z-20' : 'hover:-translate-y-0.5'}`}>
+                      <div 
+                        key={p._id} 
+                        className="flex flex-col items-center shrink-0 snap-start relative"
+                        onClick={() => handleCardClick(p._id)}
+                      >
+                        {/* ӨӨРЧЛӨЛТ: 
+                            'scale-105' болон 'hover' эффектүүдийг бүрэн хассан. 
+                            Одоо карт зөвхөн border-оороо ялгарна.
+                        */}
+                        <div className={`relative transition-all duration-300 rounded-[2rem] p-0.5 border-2 ${
+                          isRelatedToSelection 
+                            ? 'border-amber-500 bg-amber-50/30' 
+                            : 'border-transparent'
+                        } ${isExpanded ? 'z-20' : ''}`}> 
+                          
                           <ProfileCard 
                             profile={p} 
                             profiles={profiles}
                             onDelete={(id) => handleDelete(id)}
                             onEdit={(data) => { setEditingProfile(data); setIsEditOpen(true); }}
                           />
+                          
                           {children.length > 0 && (
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setExpandedParentId(isExpanded ? null : p._id);
-                              }}
+                            <div 
                               className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md border shadow-sm transition-all flex items-center gap-1
                                 ${isExpanded ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-slate-400 border-slate-100 hover:text-amber-600'}`}
                             >
                               <span className="text-[9px] font-black">{children.length}</span>
                               <ChevronDown size={10} className={`${isExpanded ? 'rotate-180' : ''}`} />
-                            </button>
+                            </div>
                           )}
                         </div>
-
-                        {isExpanded && (
-                          <div ref={expandedRef} className="mt-4 p-2 bg-white rounded-xl border border-slate-100 shadow-xl w-full min-w-[180px] animate-in zoom-in-95">
-                            <div className="space-y-1">
-                              {children.map(child => (
-                                <div key={child._id} className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-transparent hover:border-amber-100">
-                                   <div className="w-6 h-6 rounded bg-white text-amber-600 flex items-center justify-center text-[10px] font-bold border border-slate-100 shrink-0">
-                                     {child.name?.charAt(0)}
-                                   </div>
-                                   <span className="text-[9px] font-bold text-slate-600 truncate flex-1 uppercase">{child.name}</span>
-                                   <Link href={`/person/${child._id}`} className="p-1 text-slate-300 hover:text-amber-500 transition-colors">
-                                    <ArrowRight size={14} />
-                                  </Link>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
@@ -333,7 +363,7 @@ export default function LandingPage() {
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
         <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
-          <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
+          <button onClick={() => {setExpandedParentId(null); setSelectedParentId(null);}} className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></button>
           <button onClick={() => setIsRegisterOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
             <Plus size={16} strokeWidth={4} /> Гишүүн Нэмэх
           </button>
@@ -378,13 +408,7 @@ export default function LandingPage() {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[120] p-6 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] p-8 max-w-xs w-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-50 relative overflow-hidden animate-in zoom-in-95 duration-300">
             
-            {/* Чимэглэлийн арын өнгө (зөвхөн амжилттай үед) */}
-            {alertModal.type === 'message' && (
-              <div className="absolute top-0 left-0 right-0" />
-            )}
-
             <div className="text-center">
-              {/* Икон хэсэг */}
               <div className="mb-2 flex justify-center">
                 {alertModal.type === 'message' ? (
                   <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 ">
