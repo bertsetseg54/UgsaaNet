@@ -499,9 +499,19 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (expandedParentId && expandedRef.current) {
-      setTimeout(() => {
-        expandedRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      const timer = setTimeout(() => {
+        // 200ms-ийн дараа Ref байсаар байгаа эсэхийг дахин шалгана
+        if (expandedRef.current) {
+          expandedRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'nearest', 
+            inline: 'center' 
+          });
+        }
       }, 200);
+
+      // Component unmount болох эсвэл ID өөрчлөгдөхөд таймерыг цэвэрлэнэ
+      return () => clearTimeout(timer);
     }
   }, [expandedParentId]);
 
