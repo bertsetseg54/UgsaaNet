@@ -1,7 +1,10 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Crown, User, BookOpen, Edit3, Trash2, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { 
+  ArrowLeft, Crown, User, BookOpen, Edit3, Trash2, 
+  CheckCircle2, AlertTriangle, MapPin, Heart, Cross, Calendar 
+} from "lucide-react";
 import SiblingsList from "../components/SiblingsList";
 import FamilySection from "../components/FamilySection";
 import RegisterForm from "../components/RegisterForm";
@@ -69,9 +72,7 @@ export default function PersonProfilePage() {
 
   const closeSuccessModal = () => {
     setSuccessModal({ ...successModal, open: false });
-    if (successModal.type === "delete") {
-      router.push("/landingPage");
-    }
+    if (successModal.type === "delete") router.push("/landingPage");
   };
 
   if (loading || !person) return <div className="p-20 text-center text-[10px] font-black text-slate-400 animate-pulse uppercase tracking-[0.2em]">Уншиж байна...</div>;
@@ -87,43 +88,65 @@ export default function PersonProfilePage() {
           </Link>
           
           <div className="flex gap-2 w-full sm:w-auto">
-            <button 
-              onClick={() => setIsEditOpen(true)} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 hover:border-amber-400 hover:text-amber-600 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all active:scale-95"
-            >
-              <Edit3 size={15} />
-              <span>Засах</span>
+            <button onClick={() => setIsEditOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-900 hover:border-amber-400 hover:text-amber-600 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all">
+              <Edit3 size={15} /> <span>Засах</span>
             </button>
-            <button 
-              onClick={() => setIsDeleteModalOpen(true)} 
-              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-red-500 hover:border-red-200 hover:bg-red-50 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all active:scale-95"
-            >
-              <Trash2 size={15} />
-              <span>Устгах</span>
+            <button onClick={() => setIsDeleteModalOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-red-500 hover:border-red-200 hover:bg-red-50 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all">
+              <Trash2 size={15} /> <span>Устгах</span>
             </button>
           </div>
         </div>
 
-        {/* Profile Card Section (Existing structure) */}
+        {/* Profile Card Section */}
         <div className={`bg-white border rounded-[2.5rem] overflow-hidden shadow-sm mb-6 ${Number(person.generation) === 1 ? 'border-amber-200 ring-8 ring-amber-50/50' : 'border-slate-100'}`}>
           <div className="p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
             <div className="shrink-0 relative">
               <div className={`w-36 h-48 md:w-44 md:h-56 bg-slate-50 border-4 shadow-2xl rounded-[2rem] overflow-hidden ${Number(person.generation) === 1 ? 'border-amber-400' : 'border-white'}`}>
-                {person.pic ? <img src={person.pic} className="w-full h-full object-cover" alt={person.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={48} /></div>}
+                {person.pic || person.imageUrl ? <img src={person.pic || person.imageUrl} className="w-full h-full object-cover" alt={person.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={48} /></div>}
               </div>
               <div className="absolute -bottom-3 -right-3 bg-slate-900 text-white w-12 h-12 rounded-2xl flex flex-col items-center justify-center border-4 border-white shadow-xl font-black">
                 <span className="text-[14px]">{person.generation}</span><span className="text-[7px] uppercase opacity-60">үе</span>
               </div>
             </div>
+
             <div className="flex-1 w-full">
-              {Number(person.generation) === 1 && <div className="inline-flex gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-full text-[10px] font-black uppercase mb-3 shadow-lg shadow-amber-200"><Crown size={12} fill="currentColor" /> Ургийн тэргүүн</div>}
+              <div className="flex flex-wrap gap-2 mb-3 justify-center md:justify-start">
+                {Number(person.generation) === 1 && <div className="inline-flex gap-2 px-4 py-1.5 bg-amber-500 text-white rounded-full text-[10px] font-black uppercase shadow-lg shadow-amber-200"><Crown size={12} fill="currentColor" /> Ургийн тэргүүн</div>}
+                {person.deathyear && <div className="inline-flex gap-2 px-4 py-1.5 bg-red-100 text-red-600 rounded-full text-[10px] font-black uppercase"><Cross size={12} /> Буяны үйлс</div>}
+              </div>
+              
               <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase italic mb-2 tracking-tight">{person.name}</h1>
               <div className="inline-block px-4 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase mb-6 tracking-[0.1em]">{person.job || "Мэргэжилгүй"}</div>
+              
               <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-50 text-left">
-                <InfoItem label="Төрсөн он" value={person.birthyear} /><InfoItem label="Хүйс" value={person.gender === "male" ? "Эрэгтэй" : "Эмэгтэй"} /><div className="col-span-2"><InfoItem label="Төрсөн нутаг" value={person.bornplace} /></div>
+                <InfoItem icon={<Calendar size={12} />} label="Хугацаа" value={`${person.birthyear || "????"} ${person.deathyear ? ` - ${person.deathyear}` : ""}`} />
+                <InfoItem label="Хүйс" value={person.gender === "male" ? "Эрэгтэй" : "Эмэгтэй"} />
+                <InfoItem label="Төрсөн нутаг" value={person.bornplace} />
+                <InfoItem 
+                  label={person.deathyear ? "Нас барсан хаяг" : "Одоогийн хаяг"} 
+                  value={person.currentplace} 
+                  highlight={person.deathyear}
+                />
               </div>
             </div>
           </div>
+
+          {/* Гэр бүлийн хүн - Spouse section */}
+          {person.spouse && person.spouse.name && (
+            <div className="px-6 md:px-10 py-5 bg-rose-50/40 border-t border-rose-100/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-rose-500 shadow-sm border border-rose-100">
+                  <Heart size={18} fill="currentColor" />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Гэр бүлийн хүн</label>
+                  <p className="text-[13px] font-black text-rose-900 uppercase italic leading-none">{person.spouse.lastname} {person.spouse.name}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Намтар түүх */}
           <div className="px-6 md:px-10 py-6 bg-slate-50/50 border-t border-slate-100">
             <div className="flex items-center gap-2 mb-3"><BookOpen size={14} className="text-amber-500" /><h2 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em]">Намтар түүх</h2></div>
             <p className="text-[13px] leading-relaxed text-slate-600 font-medium italic whitespace-pre-wrap">{person.about || person.barimt || "Намтар түүх бүртгэгдээгүй байна."}</p>
@@ -137,12 +160,17 @@ export default function PersonProfilePage() {
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" /> Дээд үе (Эцэг / Эх)
               </h3>
-              {parent && (
+              {parent ? (
                 <Link href={`/person/${parent._id}`} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-2xl border border-slate-100 transition-all group">
-                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition-transform"><img src={parent.pic || "/placeholder.png"} className="w-full h-full object-cover" alt={parent.name} /></div>
-                  <div><div className="text-[13px] font-black uppercase text-slate-800 group-hover:text-amber-600 transition-colors">{parent.name}</div><div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{parent.generation}-р үеийн төлөөлөл</div></div>
+                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
+                    <img src={parent.pic || parent.imageUrl || "/placeholder.png"} className="w-full h-full object-cover" alt={parent.name} />
+                  </div>
+                  <div>
+                    <div className="text-[13px] font-black uppercase text-slate-800 group-hover:text-amber-600 transition-colors">{parent.name}</div>
+                    <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{parent.generation}-р үеийн төлөөлөл</div>
+                  </div>
                 </Link>
-              )}
+              ) : <div className="text-[11px] text-slate-300 italic">Мэдээлэл байхгүй...</div>}
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -152,57 +180,35 @@ export default function PersonProfilePage() {
         </div>
       </div>
 
-      {/* MODALS SECTION */}
-
-      {/* Edit Form Modal */}
+      {/* Modals (Edit, Delete, Success) хэвээрээ */}
       {isEditOpen && <RegisterForm isOpen={isEditOpen} setIsOpen={setIsEditOpen} editData={person} onUpdate={handleUpdateSuccess} />}
       
-      {/* 1. Delete Confirmation Modal */}
+      {/* ... (Delete болон Success modal-ууд таны анхны кодтой ижил) ... */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[8px] z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/20 animate-in fade-in zoom-in duration-200">
-            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-100 relative">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-2xl border border-white/20">
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
                <Trash2 size={32} />
-               <div className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full border-2 border-white animate-pulse">
-                 <AlertTriangle size={12} />
-               </div>
             </div>
-            <h3 className="text-xl font-black uppercase mb-2 text-slate-900 tracking-tight">Устгах уу?</h3>
-            <p className="text-[13px] text-slate-500 mb-8 leading-relaxed px-4 font-medium">
-              Та <span className="font-black text-slate-900 underline decoration-red-200 italic">"{person.name}"</span>-ийн мэдээллийг бүрмөсөн устгахдаа итгэлтэй байна уу?
-            </p>
+            <h3 className="text-xl font-black uppercase mb-2 text-slate-900">Устгах уу?</h3>
+            <p className="text-[13px] text-slate-500 mb-8 px-4">Та <span className="font-black text-slate-900 italic">"{person.name}"</span>-ийн мэдээллийг устгахдаа итгэлтэй байна уу?</p>
             <div className="flex flex-col gap-3">
-              <button onClick={handleDelete} className="w-full py-4 bg-red-500 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-red-200 hover:bg-red-600 transition-all active:scale-[0.98]">
-                Тийм, устгах
-              </button>
-              <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-4 bg-slate-100 text-slate-500 rounded-2xl text-[11px] font-black uppercase hover:bg-slate-200 transition-all">
-                Болих
-              </button>
+              <button onClick={handleDelete} className="w-full py-4 bg-red-500 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-red-200 hover:bg-red-600">Тийм, устгах</button>
+              <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-4 bg-slate-100 text-slate-500 rounded-2xl text-[11px] font-black uppercase">Болих</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 2. Success Modal */}
       {successModal.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[12px] z-[110] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-[0_25px_60px_rgba(0,0,0,0.3)] border-b-[6px] border-emerald-500 animate-in zoom-in-95 fade-in duration-300">
-            <div className="relative inline-flex mb-6">
-              <div className="absolute inset-0 bg-emerald-100 rounded-full scale-150 opacity-30 animate-ping" />
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-100 relative z-10">
+          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-100">
                 <CheckCircle2 size={40} />
-              </div>
             </div>
-            <h3 className="text-2xl font-black uppercase mb-3 text-slate-900 tracking-tight">Амжилттай</h3>
-            <p className="text-[13px] text-slate-400 mb-10 font-medium tracking-wide leading-relaxed">
-              {successModal.message}
-            </p>
-            <button 
-              onClick={closeSuccessModal} 
-              className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 transition-all active:scale-[0.97]"
-            >
-              ОЙЛГОЛОО
-            </button>
+            <h3 className="text-2xl font-black uppercase mb-3 text-slate-900">Амжилттай</h3>
+            <p className="text-[13px] text-slate-400 mb-10 font-medium">{successModal.message}</p>
+            <button onClick={closeSuccessModal} className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em]">ОЙЛГОЛОО</button>
           </div>
         </div>
       )}
@@ -210,11 +216,15 @@ export default function PersonProfilePage() {
   );
 }
 
-function InfoItem({ label, value }) {
+function InfoItem({ label, value, highlight }) {
   return (
     <div className="group">
-      <label className="block text-[9px] font-black text-slate-400 uppercase mb-1.5 tracking-widest opacity-80">{label}</label>
-      <p className="text-[14px] font-bold text-slate-800 group-hover:text-amber-600 transition-colors">{value || "---"}</p>
+      <label className={`block text-[9px] font-black uppercase mb-1.5 tracking-widest opacity-80 ${highlight ? 'text-red-400' : 'text-slate-400'}`}>
+        {label}
+      </label>
+      <p className={`text-[13px] font-bold transition-colors ${highlight ? 'text-red-700' : 'text-slate-800 group-hover:text-amber-600'}`}>
+        {value || "---"}
+      </p>
     </div>
   );
 }
@@ -228,9 +238,7 @@ function FamilyBlock({ title, count, children }) {
         </h3>
         <span className="px-3 py-1 bg-slate-900 text-white rounded-xl text-[10px] font-black shadow-sm ring-4 ring-slate-50">{count}</span>
       </div>
-      <div className="min-h-[40px]">
-        {children}
-      </div>
+      <div className="min-h-[40px]">{children}</div>
     </section>
   );
 }

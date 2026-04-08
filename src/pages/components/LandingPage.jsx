@@ -44,16 +44,16 @@ export default function LandingPage() {
   const hasHeadOfFamily = useMemo(() => {
     return profiles.some(p => Number(p.generation) === 1);
   }, [profiles]);
+
   const handleCopy = async () => {
-  try {
-    await navigator.clipboard.writeText(familyId);
-    setCopied(true);
-    // 2 секундын дараа "Хуулагдлаа" төлөвийг буцаах
-    setTimeout(() => setCopied(false), 2000);
-  } catch (err) {
-    console.error("Хуулж чадсангүй: ", err);
-  }
-};
+    try {
+      await navigator.clipboard.writeText(familyId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Хуулж чадсангүй: ", err);
+    }
+  };
 
   const fetchProfiles = async (fId) => {
     try {
@@ -187,7 +187,6 @@ export default function LandingPage() {
                 <button onClick={handleCopyID} className="text-slate-400 hover:text-amber-500">{copySuccess ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}</button>
               </div>
             
-            {/* Search + QR Center Group */}
             <div className="flex-1 max-w-[500px] flex items-center gap-2">
               <div className="relative flex-1">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -196,7 +195,6 @@ export default function LandingPage() {
                 className="w-full bg-slate-100/80 rounded-lg py-1.5 pl-9 pr-4 text-[11px] font-bold outline-none focus:bg-white border border-transparent focus:border-amber-200 transition-all"/>
               </div>
               
-              {/* QR Code button - Search-ийн хажууд харагдана */}
               <button onClick={() => setShowQR(true)} className="p-1.5 bg-slate-100 text-slate-500 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition-colors shrink-0">
                 <QrCode size={18} />
               </button>
@@ -245,6 +243,16 @@ export default function LandingPage() {
 
        {loading ? (
           <div className="flex justify-center py-20"><div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+        ) : profiles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 px-4 bg-white border-2 border-dashed border-slate-200 rounded-[3rem] text-center animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4 shadow-inner">
+              <Users size={32} />
+            </div>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Ургийн мод хоосон байна</h3>
+            <button onClick={() => setIsRegisterOpen(true)} className="flex items-center gap-2 bg-amber-500 text-white px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl active:scale-95">
+              <Plus size={16} strokeWidth={4} /> Анхны гишүүнээ нэмэх
+            </button>
+          </div>
         ) : (
           <div className="space-y-1"> 
             {Object.keys(groupedByGeneration).sort((a,b) => Number(a)-Number(b)).map((gen) => (
@@ -267,7 +275,6 @@ export default function LandingPage() {
                   </div>
                 </div>
                 
-                {/* Profile Grid - Padding багасгасан (gap-2) */}
                 <div className="flex overflow-x-auto gap-2 no-scrollbar snap-x px-1 pb-4">
                   {groupedByGeneration[gen].map((p) => {
                     const children = profiles.filter(c => c.parentId === p._id);
@@ -324,7 +331,6 @@ export default function LandingPage() {
         )}
       </main>
 
-      {/* Mobile Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
         <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
           <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
@@ -335,7 +341,6 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* QR Code Modal - Загварыг зөөлрүүлэв */}
       {showQR && (
           <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-[110] p-6 animate-in fade-in duration-200">
             <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full shadow-2xl text-center relative animate-in zoom-in-95">
@@ -352,7 +357,6 @@ export default function LandingPage() {
                 <QRCodeSVG value={familyId} size={160} level="H" />
               </div>
 
-              {/* Код дээр дарахад хуулах хэсэг */}
               <div 
                 onClick={handleCopy}
                 className="bg-slate-50 rounded-xl p-3 border border-slate-100 cursor-pointer hover:bg-slate-100 active:scale-95 transition-all relative group"
@@ -369,23 +373,62 @@ export default function LandingPage() {
           </div>
         )}
 
-      {/* Alert Modal - Загварыг зөөлрүүлэв */}
+      {/* Alert Modal - Шинэчлэгдсэн загвар */}
       {alertModal.open && (
-        <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm flex items-center justify-center z-[120] p-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl border border-slate-50">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[120] p-6 animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-xs w-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-50 relative overflow-hidden animate-in zoom-in-95 duration-300">
+            
+            {/* Чимэглэлийн арын өнгө (зөвхөн амжилттай үед) */}
+            {alertModal.type === 'message' && (
+              <div className="absolute top-0 left-0 right-0" />
+            )}
+
             <div className="text-center">
-              <h3 className="text-xs font-black text-slate-800 mb-2 uppercase tracking-wider">{alertModal.title}</h3>
-              <p className="text-[10px] font-bold text-slate-500 mb-6 uppercase leading-relaxed">{alertModal.message}</p>
-              
-              <div className="flex gap-2">
+              {/* Икон хэсэг */}
+              <div className="mb-2 flex justify-center">
                 {alertModal.type === 'message' ? (
-                  <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="w-full py-2.5 bg-slate-900 text-white rounded-xl font-bold text-[10px] uppercase">Ойлголоо</button>
+                  <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500 ">
+                    <Check size={32} strokeWidth={3} />
+                  </div>
+                ) : alertModal.type === 'logout' ? (
+                  <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
+                    <LogOut size={32} strokeWidth={2.5} />
+                  </div>
+                ) : (
+                  <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500">
+                    <Trash2 size={32} strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
+
+              <h3 className="text-sm font-black text-slate-800 mb-2 uppercase tracking-widest">
+                {alertModal.title}
+              </h3>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tight mb-8 leading-relaxed px-2">
+                {alertModal.message}
+              </p>
+              
+              <div className="flex gap-3">
+                {alertModal.type === 'message' ? (
+                  <button 
+                    onClick={() => setAlertModal({ ...alertModal, open: false })} 
+                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all shadow-lg active:scale-95"
+                  >
+                    Ойлголоо
+                  </button>
                 ) : (
                   <>
-                    <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="flex-1 py-2.5 bg-slate-100 text-slate-500 rounded-xl font-bold text-[10px] uppercase">Болих</button>
+                    <button 
+                      onClick={() => setAlertModal({ ...alertModal, open: false })} 
+                      className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] hover:bg-slate-200 transition-all"
+                    >
+                      Болих
+                    </button>
                     <button 
                       onClick={alertModal.type === 'logout' ? performLogout : performDelete} 
-                      className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold text-[10px] uppercase"
+                      className={`flex-1 py-4 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg active:scale-95 transition-all ${
+                        alertModal.type === 'logout' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-red-500 hover:bg-red-600'
+                      }`}
                     >
                       Тийм
                     </button>

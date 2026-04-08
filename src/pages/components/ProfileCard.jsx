@@ -1,14 +1,17 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { User, Trash2, Edit, ChevronRight, ArrowRight, Users } from "lucide-react";
+import { Trash2, ArrowRight, Users } from "lucide-react";
 
-export default function ProfileCard({ profile, profiles, onDelete, onEdit }) {
+export default function ProfileCard({ profile, profiles, onDelete }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!profile) return null;
-  const { _id, name, parentId, profession, pic, imageUrl } = profile;
+  
+  // Талбаруудыг RegisterForm-той ижилсүүлэв
+  const { _id, name, parentId, job, pic, imageUrl, parentName } = profile;
+  
   const displayImage = pic || imageUrl;
   const father = profiles?.find(f => f._id === parentId);
 
@@ -32,10 +35,8 @@ export default function ProfileCard({ profile, profiles, onDelete, onEdit }) {
 
   return (
     <div className="group relative w-[165px] sm:min-w-[185px] flex-shrink-0 snap-start px-0.5">
-      {/* Үндсэн карт - Padding-ийг p-2.5 болгож багасгав */}
       <div className="bg-white border border-slate-100 rounded-[1.8rem] p-2.5 hover:shadow-xl hover:border-amber-200 transition-all duration-300 group relative shadow-sm">
         
-        {/* Сум - Хэмжээг нь томруулж (p-2, size-16), байрлалыг илүү тод болгов */}
         <Link 
           href={`/person/${_id}`} 
           className="absolute top-2.5 right-2.5 p-2 bg-slate-50 rounded-xl text-slate-400 group-hover:bg-amber-500 group-hover:text-white group-hover:scale-110 transition-all z-10 shadow-sm"
@@ -44,7 +45,6 @@ export default function ProfileCard({ profile, profiles, onDelete, onEdit }) {
         </Link>
         
         <div className="flex flex-col items-center gap-1.5">
-          {/* Профайл зураг */}
           <div className="w-16 h-16 bg-slate-50 rounded-2xl overflow-hidden border-2 border-white shadow-md">
             {displayImage ? (
               <img src={displayImage} className="w-full h-full object-cover" alt={name} />
@@ -55,38 +55,20 @@ export default function ProfileCard({ profile, profiles, onDelete, onEdit }) {
             )}
           </div>
 
-          {/* Мэдээллийн хэсэг - Зайнуудыг (margin/gap) багасгав */}
           <div className="text-center w-full mt-0.5 px-1">
             <p className="text-[8px] font-black text-amber-600/80 uppercase tracking-tighter leading-none mb-1">
-              {father ? `${father.name}-ын` : (profile.parentname || "Ургийн тэргүүн")}
+              {father ? `${father.name}-ын` : (parentName || "Ургийн тэргүүн")}
             </p>
             <h1 className="text-[11px] sm:text-[12px] font-[1000] text-slate-800 group-hover:text-amber-600 truncate uppercase italic leading-tight">
               {name}
             </h1>
             <p className="text-[7px] font-black text-slate-400 uppercase mt-1 bg-slate-50/80 px-2 py-0.5 rounded-lg inline-block tracking-widest">
-              {profession || "Мэргэжил тодорхойгүй"}
+              {job || "Мэргэжил тодорхойгүй"}
             </p>
           </div>
         </div>
-
-        {/* Edit/Delete товчлуурууд - Бага зэрэг дээшлүүлж цэгцлэв */}
-        <div className="absolute bottom-2.5 right-2.5 flex gap-1 opacity-0 transform translate-y-1 group-hover:translate-y-0 transition-all duration-300">
-          <button 
-            onClick={(e) => { e.preventDefault(); onEdit(profile); }} 
-            className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-amber-500 hover:border-amber-200 shadow-sm"
-          >
-            <Edit size={12} />
-          </button>
-          <button 
-            onClick={(e) => { e.preventDefault(); setIsModalOpen(true); }} 
-            className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400 hover:text-red-500 hover:border-red-200 shadow-sm"
-          >
-            <Trash2 size={12} />
-          </button>
-        </div>
       </div>
 
-      {/* Устгах Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[1200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 text-center">
           <div className="bg-white rounded-[2rem] p-6 max-w-[280px] w-full shadow-2xl border border-slate-100">
