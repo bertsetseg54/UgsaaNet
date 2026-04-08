@@ -203,6 +203,7 @@ export default function LandingPage() {
       return acc;
     }, {});
   }, [filteredProfiles]);
+  
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] text-slate-700 font-sans">
