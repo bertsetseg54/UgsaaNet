@@ -3,7 +3,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { 
   ArrowLeft, Crown, User, BookOpen, Edit3, Trash2, 
-  CheckCircle2, X, Calendar, Heart, Cross 
+  CheckCircle2, X, Calendar, Heart, Cross, 
+  Sparkles
 } from "lucide-react"; 
 import RegisterForm from "../components/RegisterForm";
 import Link from "next/link";
@@ -18,21 +19,20 @@ export default function PersonProfilePage() {
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  // Modal-уудын state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Анхааруулах modal
+  const [isEditOpen, setIsEditOpen] = useState(false);           // Үндсэн засах form
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [successModal, setSuccessModal] = useState({ open: false, message: "", type: "" });
 
   const fetchData = useCallback(async () => {
     if (!router.isReady || !id) return;
-
     try {
       setLoading(true);
       const userStr = localStorage.getItem("user_data");
       const user = JSON.parse(userStr || "{}");
-      
       const res = await fetch(`/api/persons?familyId=${encodeURIComponent(user.familyId)}`);
       const data = await res.json();
-      
       if (data.success) {
         const found = data.data.find(p => p._id === id);
         if (found) {
@@ -79,20 +79,26 @@ export default function PersonProfilePage() {
     if (successModal.type === "delete") router.push("/landingPage");
   };
 
-  if (loading) return <div className="p-20 text-center text-[10px] font-black text-slate-400 animate-pulse uppercase tracking-[0.2em]">Уншиж байна...</div>;
-  if (!person) return <div className="p-20 text-center">Хэрэглэгч олдсонгүй.</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-[10px] font-black text-slate-400 animate-pulse uppercase tracking-[0.2em]">Уншиж байна...</div>;
+  if (!person) return <div className="min-h-screen flex items-center justify-center">Хэрэглэгч олдсонгүй.</div>;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pt-3 px-3 antialiased">
-      <div className="max-w-3xl mx-auto pb-6">
+    // flex-col болон min-h-screen ашиглан footer-ийг доор тулгав
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col antialiased">
+      <div className="max-w-3xl mx-auto w-full pt-3 px-3 flex-grow pb-12">
         
+        {/* Header Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
           <Link href="/landingPage" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-all group">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> БУЦАХ
           </Link>
           
           <div className="flex gap-2 w-full sm:w-auto">
-            <button onClick={() => setIsEditOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 hover:border-amber-400 hover:text-amber-600 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all">
+            {/* Засах товч: Анхааруулах модалыг нээнэ */}
+            <button 
+              onClick={() => setIsEditModalOpen(true)} 
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 hover:border-amber-400 hover:text-amber-600 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all"
+            >
               <Edit3 size={15} /> <span>Засах</span>
             </button>
             <button onClick={() => setIsDeleteModalOpen(true)} className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-red-500 hover:border-red-200 hover:bg-red-50 font-black text-[11px] uppercase tracking-wider shadow-sm transition-all">
@@ -101,6 +107,7 @@ export default function PersonProfilePage() {
           </div>
         </div>
 
+        {/* Profile Card Section */}
         <div className={`bg-white border rounded-[2rem] overflow-hidden shadow-sm mb-4 ${Number(person.generation) === 1 ? 'border-amber-200 ring-4 ring-amber-50/50' : 'border-slate-100'}`}>
           <div className="p-5 md:p-8 flex flex-col md:flex-row gap-6 items-center md:items-start text-center md:text-left">
             <div className="shrink-0 relative">
@@ -117,23 +124,17 @@ export default function PersonProfilePage() {
                 {Number(person.generation) === 1 && <div className="inline-flex gap-2 px-3 py-1 bg-amber-500 text-white rounded-full text-[9px] font-black uppercase shadow-lg shadow-amber-200"><Crown size={10} fill="currentColor" /> Ургийн тэргүүн</div>}
                 {person.deathyear && <div className="inline-flex gap-2 px-3 py-1 bg-red-100 text-red-600 rounded-full text-[9px] font-black uppercase"><Cross size={10} /> Буяны үйлс</div>}
               </div>
-              
               <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic mb-1 tracking-tight">{person.name}</h1>
               <div className="inline-block px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black uppercase mb-4 tracking-[0.1em]">{person.job || "Мэргэжилгүй"}</div>
-              
               <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50 text-left">
                 <InfoItem label="Хугацаа" value={`${person.birthyear || "????"} ${person.deathyear ? ` - ${person.deathyear}` : ""}`} />
                 <InfoItem label="Хүйс" value={person.gender === "male" ? "Эрэгтэй" : "Эмэгтэй"} />
                 <InfoItem label="Төрсөн нутаг" value={person.bornplace} />
-                <InfoItem 
-                  label={person.deathyear ? "Нас барсан" : "Одоогийн хаяг"} 
-                  value={person.currentplace} 
-                  highlight={!!person.deathyear}
-                />
+                <InfoItem label={person.deathyear ? "Нас барсан" : "Одоогийн хаяг"} value={person.currentplace} highlight={!!person.deathyear} />
               </div>
             </div>
           </div>
-
+          {/* Spouse, Bio, and Connections remain the same... */}
           {person.spouse && person.spouse.name && (
             <div className="px-5 md:px-8 py-3 bg-rose-50/40 border-t border-rose-100/50">
               <div className="flex items-center gap-3">
@@ -147,19 +148,17 @@ export default function PersonProfilePage() {
               </div>
             </div>
           )}
-
           <div className="px-5 md:px-8 py-4 bg-slate-50/50 border-t border-slate-100">
             <div className="flex items-center gap-2 mb-2"><BookOpen size={14} className="text-amber-500" /><h2 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.15em]">Намтар түүх</h2></div>
             <p className="text-[12px] leading-relaxed text-slate-600 font-medium italic whitespace-pre-wrap">{person.about || person.barimt || "Намтар түүх бүртгэгдээгүй байна."}</p>
           </div>
         </div>
 
+        {/* Family Tree Connections */}
         <div className="space-y-2">
           {person.parentId && parent && (
             <div className="bg-white border border-slate-100 rounded-[1.5rem] p-4 shadow-sm">
-              <h3 className="text-[9px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" /> Дээд үе (Эцэг / Эх)
-              </h3>
+              <h3 className="text-[9px] font-black uppercase text-slate-400 mb-2 tracking-widest flex items-center gap-2"><div className="w-1.5 h-1.5 bg-slate-300 rounded-full" /> Дээд үе (Эцэг / Эх)</h3>
               <Link href={`/person/${parent._id}`} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl border border-slate-50 transition-all group">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden border-2 border-white shadow-sm">
                   {parent.pic ? <img src={parent.pic} className="w-full h-full object-cover" alt={parent.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={20} /></div>}
@@ -171,47 +170,66 @@ export default function PersonProfilePage() {
               </Link>
             </div>
           )}
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <FamilyBlock title="Ах дүүс" count={siblings.length}>
-              <div className="space-y-1">
-                {siblings.map((sib) => (
-                  <Link key={sib._id} href={`/person/${sib._id}`} className="flex border border-slate-50 items-center gap-2.5 p-1.5 hover:bg-slate-50 rounded-lg transition-all group">
-                    <div className="w-8 h-8 rounded-md bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
-                      {sib.pic ? <img src={sib.pic} className="w-full h-full object-cover" alt={sib.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={16} /></div>}
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 uppercase group-hover:text-amber-600 truncate">{sib.name}</span>
-                  </Link>
-                ))}
-              </div>
+              {siblings.map(sib => (
+                <Link key={sib._id} href={`/person/${sib._id}`} className="flex border border-slate-50 items-center gap-2.5 p-1.5 hover:bg-slate-50 rounded-lg transition-all group mb-1">
+                  <div className="w-8 h-8 rounded-md bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                    {sib.pic ? <img src={sib.pic} className="w-full h-full object-cover" alt={sib.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={16} /></div>}
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-700 uppercase group-hover:text-amber-600 truncate">{sib.name}</span>
+                </Link>
+              ))}
             </FamilyBlock>
-
             <FamilyBlock title="Үр хүүхэд" count={children.length}>
-              <div className="space-y-1">
-                {children.map((child) => (
-                  <Link key={child._id} href={`/person/${child._id}`} className="flex border border-slate-50 items-center gap-2.5 p-1.5 hover:bg-slate-50 rounded-lg transition-all group">
-                    <div className="w-8 h-8 rounded-md bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
-                      {child.pic ? <img src={child.pic} className="w-full h-full object-cover" alt={child.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={16} /></div>}
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-700 uppercase group-hover:text-amber-600 truncate">{child.name}</span>
-                  </Link>
-                ))}
-              </div>
+              {children.map(child => (
+                <Link key={child._id} href={`/person/${child._id}`} className="flex border border-slate-50 items-center gap-2.5 p-1.5 hover:bg-slate-50 rounded-lg transition-all group mb-1">
+                  <div className="w-8 h-8 rounded-md bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                    {child.pic ? <img src={child.pic} className="w-full h-full object-cover" alt={child.name} /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={16} /></div>}
+                  </div>
+                  <span className="text-[11px] font-bold text-slate-700 uppercase group-hover:text-amber-600 truncate">{child.name}</span>
+                </Link>
+              ))}
             </FamilyBlock>
           </div>
         </div>
       </div>
 
+      {/* MODALS */}
+      {/* 1. Анхааруулах Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[8px] z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[2rem] p-6 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+               <Sparkles size={28} />
+            </div>
+            <h3 className="text-lg font-black uppercase mb-1">Мэдээллийг шинэчлэх үү?</h3>
+            <p className="text-[11px] text-slate-500 mb-6 font-medium">Та уг гишүүний мэдээллийг засаж, шинэчлэх гэж байна.</p>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={() => { setIsEditModalOpen(false); setIsEditOpen(true); }} 
+                className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-amber-500 transition-colors"
+              >
+                Мэдээлэл засах
+              </button>
+              <button onClick={() => setIsEditModalOpen(false)} className="w-full py-3.5 bg-slate-50 text-slate-400 rounded-xl text-[11px] font-black uppercase tracking-[0.2em]">Болих</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Жинхэнэ Засах Форм */}
       {isEditOpen && <RegisterForm isOpen={isEditOpen} setIsOpen={setIsEditOpen} editData={person} onUpdate={handleUpdateSuccess} />}
-      
+
+      {/* 3. Устгах Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[8px] z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] p-6 max-w-sm w-full text-center shadow-2xl">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                <Trash2 size={28} />
             </div>
-            <h3 className="text-lg font-black uppercase mb-1">Устгах уу?</h3>
-            <p className="text-[12px] text-slate-500 mb-6 font-medium italic">"{person.name}"-ийн мэдээллийг устгах уу?</p>
+            <h3 className="text-lg font-black uppercase mb-1 text-red-600">Устгах уу?</h3>
+            <p className="text-[12px] text-slate-500 mb-6 font-medium italic">"{person.name}"-ийн мэдээллийг системээс бүрмөсөн устгах уу?</p>
             <div className="flex flex-col gap-2">
               <button onClick={handleDelete} className="w-full py-3.5 bg-red-500 text-white rounded-xl text-[11px] font-black uppercase">Тийм, устгах</button>
               <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-3.5 bg-slate-100 text-slate-500 rounded-xl text-[11px] font-black uppercase">Болих</button>
@@ -220,6 +238,7 @@ export default function PersonProfilePage() {
         </div>
       )}
 
+      {/* 4. Амжилтын Modal */}
       {successModal.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[12px] z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-[2rem] p-8 max-w-sm w-full text-center shadow-3xl">
@@ -232,10 +251,18 @@ export default function PersonProfilePage() {
           </div>
         </div>
       )}
+
+      {/* FOOTER: Одоо хамгийн доор тулж харагдана */}
+      <footer className="pb-2 bg-white border-t border-slate-50 py-4 mt-auto">
+        <div className="flex flex-col items-center">
+          <p className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">© 2026 UgsaaNet</p>
+        </div>
+      </footer>
     </div>
   );
 }
 
+// InfoItem болон FamilyBlock функцууд хэвээрээ...
 function InfoItem({ label, value, highlight = false }) {
   return (
     <div className="group">
