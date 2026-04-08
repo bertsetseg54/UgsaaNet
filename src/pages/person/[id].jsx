@@ -104,7 +104,7 @@ export default function PersonProfilePage() {
       <div className="max-w-3xl mx-auto w-full pt-3 px-3 flex-grow pb-12">
         
         {/* Header Actions */}
-        <div className="flex justify-between items-center gap-3 mb-6">
+        <div className="flex justify-between items-center gap-3 pt-2 mb-6">
           <Link href="/landingPage" className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-900 text-[10px] font-black uppercase tracking-widest transition-all group">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> БУЦАХ
           </Link>
@@ -252,13 +252,9 @@ export default function PersonProfilePage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="bg-white border-t border-slate-100 py-8 mt-auto">
+      <footer className="bg-white border-t border-slate-100 py-6 mt-auto">
         <div className="flex flex-col items-center justify-center gap-1">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-5 h-5 bg-amber-500 rounded flex items-center justify-center text-white font-black text-[10px]">U</div>
-            <span className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em]">UgsaaNet</span>
-          </div>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">© 2026 Бүх эрх хуулиар хамгаалагдсан</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">© 2026 UgsaaNet</p>
         </div>
       </footer>
 
