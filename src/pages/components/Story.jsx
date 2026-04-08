@@ -209,7 +209,7 @@ export default function Story() {
            <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : filteredStories.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 px-4 bg-white border border-dashed border-slate-200 rounded-[3rem] text-center">
-            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4 shadow-inner">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4 shadow-2xl">
               <BookOpen size={32} />
             </div>
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Одоогоор түүх алга</h3>

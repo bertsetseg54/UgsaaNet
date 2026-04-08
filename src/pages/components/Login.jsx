@@ -62,7 +62,7 @@ export default function Login() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] px-4 py-8 selection:bg-indigo-100">
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] text-black font-sans px-4 py-8 selection:bg-indigo-100">
       <div className="w-full max-w-md md:max-w-lg transition-all duration-500">
         
         {/* Back Button */}
