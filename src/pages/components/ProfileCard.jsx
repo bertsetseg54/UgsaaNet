@@ -39,7 +39,7 @@ export default function ProfileCard({ profile, profiles, onDelete }) {
         
         <Link 
           href={`/person/${_id}`} 
-          className="absolute top-2.5 right-2.5 p-2 bg-slate-50 rounded-xl text-slate-400 group-hover:bg-amber-500 group-hover:text-white group-hover:scale-110 transition-all z-10 shadow-sm"
+          className="absolute top-2.5 right-2.5 p-2 bg-slate-50 rounded-xl text-slate-400 group-hover:bg-amber-500 group-hover:text-white  transition-all "
         >
           <ArrowRight size={16} strokeWidth={3} />
         </Link>
