@@ -6,7 +6,7 @@ import ProfileCard from "./ProfileCard";
 import {
   Fingerprint, Plus, LogOut, Search, BookOpen, Home, 
   Users, ArrowRight, Copy, Check, Edit3, Trash2, Eye, ChevronRight, EyeOff, QrCode, X, ChevronDown
-} from "lucide-react";
+} from "lucide-react"; 
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -29,9 +29,7 @@ export default function LandingPage() {
 
   // --- ШИНЭ ФУНКЦҮҮД ЭНДЭЭС ЭХЭЛЖ БАЙНА ---
   
-  // 1. Карт дээр дарахад ажиллах функц
   const handleCardClick = (profileId) => {
-    // Хэрэв аль хэдийн сонгогдсон хүн дээр дараад байвал сонголтыг цуцална
     if (expandedParentId === profileId) {
       setExpandedParentId(null);
     } else {
@@ -39,22 +37,25 @@ export default function LandingPage() {
     }
   };
 
-  // 2. Сонгогдсон хүний хүүхэд мөн эсэхийг шалгах туслах функц
   const isChildOfSelected = (child, allProfiles, selectedId) => {
-    if (!selectedId) return true; // Юу ч сонгогдоогүй бол бүгдийг харуулна
+    if (!selectedId) return true;
     
     const selectedPerson = allProfiles.find(p => p._id === selectedId);
     if (!selectedPerson) return true;
 
-    // Тухайн гишүүн сонгогдсон хүнээс өөр үеийнх бол харуулна
-    if (Number(child.generation) <= Number(selectedPerson.generation)) return true;
+    const childGen = Number(child.generation);
+    const selectedGen = Number(selectedPerson.generation);
 
-    // Хэрэв дараагийн үеийнх бол зөвхөн тухайн хүний хүүхдүүдийг харуулна
-    if (Number(child.generation) === Number(selectedPerson.generation) + 1) {
+    // 1. Сонгогдсон хүнээс дээшх болон ижил үеийнхнийг харуулна
+    if (childGen <= selectedGen) return true;
+
+    // 2. Сонгогдсон хүний ШУУД хүүхдүүдийг (дараагийн 1 үе) харуулна
+    if (childGen === selectedGen + 1) {
       return child.parentId === selectedId;
     }
 
-    return true;
+    // 3. Хүүхдээс доошх үеийг (ач, зээ гм) харагдуулахгүй
+    return false;
   };
 
   // --- ШИНЭ ФУНКЦҮҮД ДУУСЛАА ---
@@ -188,7 +189,6 @@ export default function LandingPage() {
     if (selectedParentId) {
       result = profiles.filter(p => p.parentId === selectedParentId);
     }
-    // Сонгогдсон хүний хүүхдүүдийг шүүх логикийг энд нэмлээ
     return result.filter((p) => 
       (p.name || "").toLowerCase().includes(searchQuery.toLowerCase()) &&
       isChildOfSelected(p, profiles, expandedParentId)
@@ -214,13 +214,27 @@ export default function LandingPage() {
                   <span className="text-slate-700">Угсаа</span><span className="text-amber-500">Нет</span>
                 </div>
             </Link>
-            <div className="hidden lg:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shrink-0">
-                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Ургийн Код:</span>
-                <code className="text-[10px] font-bold text-amber-600 font-mono min-w-[70px]">{showFamilyId ? familyId : "••••••"}</code>
-                <button onClick={() => setShowFamilyId(!showFamilyId)} className="text-slate-400 hover:text-amber-500">{showFamilyId ? <Eye size={12} /> : <EyeOff size={12} />}</button>
-                <button onClick={handleCopyID} className="text-slate-400 hover:text-amber-500">{copySuccess ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}</button>
+            <div className="hidden lg:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 shrink-0 overflow-hidden">
+              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest shrink-0">Ургийн Код:</span>
+              <code className="text-[10px] font-bold text-amber-600 font-mono w-[80px] truncate block text-center">
+                {showFamilyId ? familyId : "••••••"}
+              </code>
+              <div className="flex items-center gap-1 shrink-0">
+                <button onClick={() => setShowFamilyId(!showFamilyId)} className="text-slate-400 hover:text-amber-500 transition-colors p-0.5">
+                  {showFamilyId ? <Eye size={12} /> : <EyeOff size={12} />}
+                </button>
+                <button onClick={handleCopyID} className="text-slate-400 hover:text-amber-500 transition-colors p-0.5">
+                  {copySuccess ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                </button>
+                <button onClick={() => setShowQR(true)} className="ml-1 p-1 bg-slate-100 text-slate-500 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition-colors">
+                  <QrCode size={18} />
+                </button>
               </div>
-            
+            </div>
+            <Link href="/story" className="hidden md:flex items-center border rounded-xl gap-1.5 px-4 py-2  text-slate-500 hover:text-amber-600 transition-colors">
+                <BookOpen size={16} />
+                <span className="text-[12px] font-bold uppercase tracking-wider">Түүх</span>
+              </Link>
             <div className="flex-1 max-w-[500px] flex items-center gap-2">
               <div className="relative flex-1">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -228,17 +242,11 @@ export default function LandingPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-100/80 rounded-lg py-1.5 pl-9 pr-4 text-[11px] font-bold outline-none focus:bg-white border border-transparent focus:border-amber-200 transition-all"/>
               </div>
-              
-              <button onClick={() => setShowQR(true)} className="p-1.5 bg-slate-100 text-slate-500 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition-colors shrink-0">
+              <button onClick={() => setShowQR(true)} className="p-1.5 bg-slate-100 text-slate-500 rounded-lg hover:bg-amber-50 hover:text-amber-600 transition-colors shrink-0 block lg:hidden">
                 <QrCode size={18} />
               </button>
             </div>
-
             <div className="flex items-center gap-2 shrink-0">
-              <Link href="/story" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-slate-500 hover:text-amber-600 transition-colors">
-                <BookOpen size={16} />
-                <span className="text-[12px] font-bold uppercase tracking-wider">Түүх</span>
-              </Link>
               <button onClick={handleLogoutClick} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
                 <LogOut size={20} />
               </button>
@@ -246,7 +254,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 pt-16 pb-24">
+      <main className="max-w-7xl mx-auto px-4 pt-16 pb-20">
         {selectedParentId && (
           <div className="mb-4 flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm animate-in fade-in slide-in-from-top-1">
             <span className="text-[10px] font-bold uppercase text-slate-500 px-2 tracking-wide">
@@ -291,7 +299,7 @@ export default function LandingPage() {
           <div className="flex flex-col"> 
             {Object.keys(groupedByGeneration).sort((a,b) => Number(a)-Number(b)).map((gen) => (
               <section key={gen} className="relative">
-                <div className="flex justify-between items-center gap-2 px-1 mb-3">
+                <div className="flex justify-between items-center gap-2 px-1">
                   <div className="flex items-center gap-2">
                     <span className="flex items-center justify-center h-5 px-1.5 rounded bg-amber-100 text-black font-bold text-[9px] font-black">
                       {gen}
@@ -309,30 +317,24 @@ export default function LandingPage() {
                   </div>
                 </div>
                 
-                <div className="flex overflow-x-auto gap-2 no-scrollbar snap-x px-1 pb-4">
+                <div className="flex overflow-x-auto gap-2 no-scrollbar snap-x px-1 pb-3">
                  {groupedByGeneration[gen].map((p) => {
                     const children = profiles.filter(c => c.parentId === p._id);
                     const isExpanded = expandedParentId === p._id;
-
-                    // 1. Өөрөө сонгогдсон хүн мөн эсэх
-                    // 2. Сонгогдсон хүний хүүхэд мөн эсэхийг шалгана
                     const isRelatedToSelection = expandedParentId === p._id || p.parentId === expandedParentId;
 
                     return (
                       <div 
                         key={p._id} 
-                        className="flex flex-col items-center shrink-0 snap-start relative"
+                        className="flex flex-col items-center shrink-0 snap-start relative cursor-pointer"
                         onClick={() => handleCardClick(p._id)}
+                        ref={isExpanded ? expandedRef : null}
                       >
-                        {/* ӨӨРЧЛӨЛТ: 
-                            'scale-105' болон 'hover' эффектүүдийг бүрэн хассан. 
-                            Одоо карт зөвхөн border-оороо ялгарна.
-                        */}
-                        <div className={`relative transition-all duration-300 rounded-[2rem] p-0.5 border-2 ${
+                        <div className={`relative transition-all duration-300 rounded-[2rem] border-2 ${
                           isRelatedToSelection 
                             ? 'border-amber-500 bg-amber-50/30' 
                             : 'border-transparent'
-                        } ${isExpanded ? 'z-20' : ''}`}> 
+                        } ${isExpanded ? 'z-20 shadow-lg' : ''}`}> 
                           
                           <ProfileCard 
                             profile={p} 
@@ -380,13 +382,10 @@ export default function LandingPage() {
               >
                 <X size={18} />
               </button>
-
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Ургийн QR Код</h3>
-
               <div className="bg-white p-4 rounded-2xl border-[6px] border-slate-50 inline-block mb-6">
                 <QRCodeSVG value={familyId} size={160} level="H" />
               </div>
-
               <div 
                 onClick={handleCopy}
                 className="bg-slate-50 rounded-xl p-3 border border-slate-100 cursor-pointer hover:bg-slate-100 active:scale-95 transition-all relative group"
@@ -395,19 +394,15 @@ export default function LandingPage() {
                   {copied ? <span className="text-green-500">Амжилттай хуулагдлаа!</span> : "Ургийн Код (Дараад хуулна уу)"}
                   {copied ? <Check size={10} className="text-green-500" /> : <Copy size={10} />}
                 </p>
-                <p className="text-xs font-bold text-amber-600 font-mono break-all">
-                  {familyId}
-                </p>
+                <p className="text-xs font-bold text-amber-600 font-mono break-all">{familyId}</p>
               </div>
             </div>
           </div>
         )}
 
-      {/* Alert Modal - Шинэчлэгдсэн загвар */}
       {alertModal.open && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[120] p-6 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] p-8 max-w-xs w-full shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-50 relative overflow-hidden animate-in zoom-in-95 duration-300">
-            
             <div className="text-center">
               <div className="mb-2 flex justify-center">
                 {alertModal.type === 'message' ? (
@@ -424,38 +419,15 @@ export default function LandingPage() {
                   </div>
                 )}
               </div>
-
-              <h3 className="text-sm font-black text-slate-800 mb-2 uppercase tracking-widest">
-                {alertModal.title}
-              </h3>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tight mb-8 leading-relaxed px-2">
-                {alertModal.message}
-              </p>
-              
+              <h3 className="text-sm font-black text-slate-800 mb-2 uppercase tracking-widest">{alertModal.title}</h3>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-tight mb-8 leading-relaxed px-2">{alertModal.message}</p>
               <div className="flex gap-3">
                 {alertModal.type === 'message' ? (
-                  <button 
-                    onClick={() => setAlertModal({ ...alertModal, open: false })} 
-                    className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all shadow-lg active:scale-95"
-                  >
-                    Ойлголоо
-                  </button>
+                  <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-emerald-600 transition-all shadow-lg active:scale-95">Ойлголоо</button>
                 ) : (
                   <>
-                    <button 
-                      onClick={() => setAlertModal({ ...alertModal, open: false })} 
-                      className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] hover:bg-slate-200 transition-all"
-                    >
-                      Болих
-                    </button>
-                    <button 
-                      onClick={alertModal.type === 'logout' ? performLogout : performDelete} 
-                      className={`flex-1 py-4 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg active:scale-95 transition-all ${
-                        alertModal.type === 'logout' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-red-500 hover:bg-red-600'
-                      }`}
-                    >
-                      Тийм
-                    </button>
+                    <button onClick={() => setAlertModal({ ...alertModal, open: false })} className="flex-1 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] hover:bg-slate-200 transition-all">Болих</button>
+                    <button onClick={alertModal.type === 'logout' ? performLogout : performDelete} className={`flex-1 py-4 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.1em] shadow-lg active:scale-95 transition-all ${alertModal.type === 'logout' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-red-500 hover:bg-red-600'}`}>Тийм</button>
                   </>
                 )}
               </div>

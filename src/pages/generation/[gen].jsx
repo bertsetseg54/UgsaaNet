@@ -1,12 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react"; // useMemo нэмэв
 import { useParams, useRouter } from "next/navigation";
 import {
   ChevronDown,
   ArrowLeft,
   Users,
   SearchX,
-  Sparkles
+  Sparkles,
+  Loader2,
+  Fingerprint,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import ProfileCard from "../components/ProfileCard";
@@ -15,6 +18,7 @@ export default function GenerationPage() {
   const router = useRouter();
   const params = useParams();
   const gen = params?.gen;
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,123 +57,139 @@ export default function GenerationPage() {
     fetchGenProfiles();
   }, [gen]);
 
+  // Хайлтаар шүүх хэсэг
+  const filteredBySearch = useMemo(() => {
+    return profiles.filter((p) =>
+      p.name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [profiles, searchQuery]);
+
+  // Шүүгдсэн илэрцээс харуулах тоог тооцох
   const displayedProfiles = isExpanded
-    ? profiles
-    : profiles.slice(0, INITIAL_DISPLAY_COUNT);
+    ? filteredBySearch
+    : filteredBySearch.slice(0, INITIAL_DISPLAY_COUNT);
 
   return (
-    <div className="min-h-dvh bg-[#F8F9FB] flex flex-col font-sans">
-      {/* Header - Glassmorphism UI */}
-      <header className="sticky top-0 z-[100] bg-white/70 backdrop-blur-xl border-b border-slate-200/50 px-4">
-        <div className="max-w-7xl mx-auto h-20 flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="group p-2.5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md hover:border-amber-200 transition-all active:scale-95"
-          >
-            <ArrowLeft size={20} className="text-slate-600 group-hover:text-amber-500" />
-          </button>
-
-          <div className="flex flex-col items-center">
-             <div className="flex items-center gap-4">
-                <div className="flex flex-col items-end">
-                    <h1 className="text-[14px] font-[1000] text-slate-800 uppercase tracking-tight italic">
-                      {gen === "1" ? "Тэргүүн үе" : `${gen}-р үе`}
-                    </h1>
-                    <div className="flex items-center gap-1.5 bg-amber-50 px-2 py-0.5 rounded-full">
-                        <Users size={10} className="text-amber-600" />
-                        <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest">{profiles.length} гишүүн</span>
-                    </div>
-                </div>
-                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200">
-                    <span className="text-xl font-black text-white font-mono">{gen?.toString().padStart(1, '0')}</span>
-                </div>
-             </div>
+    <div className="min-h-screen bg-[#FDFDFD] flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
+      {/* Header */}
+      <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto h-16 flex items-center gap-4">
+          
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-slate-50 rounded-xl transition-colors text-slate-500"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            
+            <Link href="/" className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0">
+                <Fingerprint size={18} strokeWidth={2.5} />
+              </div>
+              <div className="hidden md:flex flex-col leading-none font-bold uppercase text-[10px]">
+                <span className="text-slate-700">Угсаа</span>
+                <span className="text-amber-500">Нет</span>
+              </div>
+            </Link>
           </div>
 
-          <div className="w-10" /> {/* Spacer */}
+          <div className="flex-1 flex justify-center max-w-md mx-auto">
+            <div className="relative w-full">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input 
+                type="text" 
+                placeholder="Хайх..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-100/80 rounded-xl py-2 pl-9 pr-4 text-[11px] font-bold outline-none focus:bg-white border border-transparent focus:border-amber-200 transition-all shadow-inner"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="text-right hidden sm:block">
+              <h1 className="text-[12px] font-black text-slate-900 uppercase tracking-tighter italic leading-none">
+                {gen === "1" ? "Тэргүүн үе" : `${gen}-р үе`}
+              </h1>
+              <div className="flex items-center justify-end gap-1 mt-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                  {filteredBySearch.length} гишүүн
+                </span>
+              </div>
+            </div>
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg shadow-slate-200 shrink-0">
+              <span className="text-lg font-black text-white font-mono">{gen}</span>
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto w-full px-6 pt-10 pb-32">
+      <main className="max-w-7xl mx-auto w-full px-4 py-3 flex-grow">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-40">
-            <div className="w-16 h-16 relative">
-                <div className="absolute inset-0 border-4 border-amber-100 rounded-2xl"></div>
-                <div className="absolute inset-0 border-4 border-amber-500 rounded-2xl animate-spin border-t-transparent"></div>
+          <div className="flex flex-col items-center justify-center py-32">
+            <div className="relative flex items-center justify-center">
+              <div className="w-12 h-12 border-4 border-amber-100 border-t-amber-500 rounded-full animate-spin" />
+              <Loader2 className="absolute text-amber-500 animate-pulse" size={16} />
             </div>
-            <p className="mt-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] animate-pulse">
-              Уншиж байна...
+            <p className="mt-6 text-[9px] font-black text-slate-400 uppercase tracking-[0.5em] ml-[0.5em]">
+              Уншиж байна
             </p>
           </div>
-        ) : profiles.length > 0 ? (
+        ) : filteredBySearch.length > 0 ? (
           <div className="flex flex-col items-center">
-            {/* Grid - Зайг (gap-8) ихэсгэж илүү агаартай болгосон */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-y-10 gap-x-6 w-full">
-              {displayedProfiles.map((profile, index) => (
-                <div
-                  key={profile._id}
-                  className="w-full flex justify-center animate-in fade-in slide-in-from-bottom-8 duration-700"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <ProfileCard
-                    profile={profile}
-                    profiles={profiles} // Profiles дамжуулахгүй бол овог харагдахгүй байж магадгүй
-                    onDelete={() => {}}
-                    onEdit={() => {}}
-                  />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-2 w-full">
+              {displayedProfiles.map((profile) => (
+                <div key={profile._id} className="w-full">
+                  <ProfileCard profile={profile} profiles={profiles} />
                 </div>
               ))}
             </div>
-
-            {/* Expand Button - Загварлаг товч */}
-            {profiles.length > INITIAL_DISPLAY_COUNT && (
+            {filteredBySearch.length > INITIAL_DISPLAY_COUNT && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-20 group flex items-center gap-4 px-10 py-4 bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200 hover:bg-amber-500 transition-all active:scale-95"
+                className="mt-20 group flex items-center gap-3 px-8 py-3.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-amber-300 hover:bg-amber-50 transition-all"
               >
-                <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+                <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">
                   {isExpanded
                     ? "Хурааж харах"
-                    : `Бүх хүнийг харах (${profiles.length})`}
+                    : `Бүх хүнийг харах (${filteredBySearch.length})`}
                 </span>
-                <div className={`text-white transition-transform duration-500 ${isExpanded ? 'rotate-180' : ''}`}>
-                  <ChevronDown size={18} strokeWidth={3} />
-                </div>
+                <ChevronDown 
+                  size={16} 
+                  className={`text-slate-400 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
+                />
               </button>
             )}
           </div>
         ) : (
-          /* Empty State */
-          <div className="max-w-md mx-auto flex flex-col items-center justify-center py-20 px-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl text-center">
-            <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center mb-8 rotate-12 group-hover:rotate-0 transition-transform">
-              <SearchX size={48} className="text-slate-200" />
+          /* Empty State - Хайлтаар юу ч олдоогүй үед */
+          <div className="max-w-sm mx-auto flex flex-col items-center justify-center py-16 px-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm text-center mt-10">
+            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6">
+              <SearchX size={32} className="text-slate-200" />
             </div>
-            <h3 className="text-slate-800 font-black text-xl uppercase italic tracking-tight">
-              Одоогоор хоосон байна
-            </h3>
-            <p className="text-slate-400 text-[11px] font-bold mt-4 leading-relaxed uppercase tracking-wide">
-              Энэ үеийн гишүүд хараахан бүртгэгдээгүй байна.
+            <h3 className="text-slate-800 font-bold text-lg">Илэрц олдсонгүй</h3>
+            <p className="text-slate-400 text-xs mt-2 leading-relaxed">
+              "{searchQuery}" нэртэй гишүүн олдсонгүй. Өөрөөр хайж үзнэ үү.
             </p>
-            <Link
-              href="/"
-              className="mt-10 w-full py-4 bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-slate-900 transition-all shadow-lg shadow-amber-100"
-            >
-              Буцах
-            </Link>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="mt-8 text-amber-600 text-[10px] font-black uppercase tracking-widest hover:underline"
+              >
+                Хайлтыг цэвэрлэх
+              </button>
+            )}
           </div>
         )}
       </main>
 
-      {/* Footer Decoration */}
-      <footer className="py-16 bg-white border-t border-slate-50">
-        <div className="flex flex-col items-center gap-4">
-            <div className="p-3 bg-amber-50 rounded-2xl text-amber-500">
-                <Sparkles size={20} />
-            </div>
-            <div className="text-center">
-                <p className="text-[10px] font-black text-slate-800 uppercase tracking-[0.3em]">УгсааНет</p>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Таны гэр бүлийн дижитал түүх</p>
-            </div>
+      <footer className="pb-2 bg-white border-t font-bold border-slate-50 mt-auto">
+        <div className="flex flex-col items-center gap-3">
+          <div className="text-center">
+            <p className="text-[10px] font-gray-900 text-slate-900 uppercase tracking-[0.2em] ml-[0.4em]">© 2026 UgsaaNet</p>
+          </div>
         </div>
       </footer>
     </div>
