@@ -1,15 +1,14 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router"; // next/navigation биш next/router ашиглана
 import { ArrowLeft, Crown, User, BookOpen, Edit3, Trash2, CheckCircle2, AlertTriangle, X } from "lucide-react";
-import SiblingsList from "../components/SiblingsList";
-import FamilySection from "../components/FamilySection";
 import RegisterForm from "../components/RegisterForm";
 import Link from "next/link";
 
 export default function PersonProfilePage() {
   const router = useRouter();
-  const [id, setId] = useState(null);
+  const { id } = router.query; // URL-аас [id]-г шууд авна
+
   const [person, setPerson] = useState(null);
   const [parent, setParent] = useState(null);
   const [siblings, setSiblings] = useState([]);
@@ -20,31 +19,40 @@ export default function PersonProfilePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [successModal, setSuccessModal] = useState({ open: false, message: "", type: "" });
 
-  useEffect(() => {
-    const pathParts = window.location.pathname.split("/");
-    setId(pathParts[pathParts.length - 1]);
-  }, []);
-
   const fetchData = useCallback(async () => {
-    if (!id) return;
+    // router.isReady нь query утгууд бэлэн болсныг илтгэнэ
+    if (!router.isReady || !id) return;
+
     try {
       setLoading(true);
-      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      const userStr = localStorage.getItem("user_data");
+      const user = JSON.parse(userStr || "{}");
+      
       const res = await fetch(`/api/persons?familyId=${encodeURIComponent(user.familyId)}`);
       const data = await res.json();
+      
       if (data.success) {
         const found = data.data.find(p => p._id === id);
         if (found) {
           setPerson(found);
-          setParent(data.data.find(p => p._id === found.parentId));
+          // Дээд үе
+          setParent(data.data.find(p => p._id === found.parentId) || null);
+          // Ах дүүс
           setSiblings(data.data.filter(p => p.parentId === found.parentId && p._id !== found._id));
+          // Хүүхдүүд
           setChildren(data.data.filter(p => p.parentId === found._id));
         }
       }
-    } catch (err) { console.error(err); } finally { setLoading(false); }
-  }, [id]);
+    } catch (err) { 
+      console.error("Дата авахад алдаа гарлаа:", err); 
+    } finally { 
+      setLoading(false); 
+    }
+  }, [id, router.isReady]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleDelete = async () => {
     try {
@@ -104,7 +112,7 @@ export default function PersonProfilePage() {
           </div>
         </div>
 
-        {/* Profile Card Section (Existing structure) */}
+        {/* Profile Card Section */}
         <div className={`bg-white border rounded-[2.5rem] overflow-hidden shadow-sm mb-6 ${Number(person.generation) === 1 ? 'border-amber-200 ring-8 ring-amber-50/50' : 'border-slate-100'}`}>
           <div className="p-6 md:p-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
             <div className="shrink-0 relative">
@@ -132,77 +140,95 @@ export default function PersonProfilePage() {
 
         {/* Connections Section */}
         <div className="space-y-4">
-          {person.parentId && (
+          {person.parentId && parent && (
             <div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm">
               <h3 className="text-[10px] font-black uppercase text-slate-400 mb-4 tracking-widest flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" /> Дээд үе (Эцэг / Эх)
               </h3>
-              {parent && (
-                <Link href={`/person/${parent._id}`} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-2xl border border-slate-100 transition-all group">
-                  <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition-transform"><img src={parent.pic || "/placeholder.png"} className="w-full h-full object-cover" alt={parent.name} /></div>
-                  <div><div className="text-[13px] font-black uppercase text-slate-800 group-hover:text-amber-600 transition-colors">{parent.name}</div><div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{parent.generation}-р үеийн төлөөлөл</div></div>
-                </Link>
-              )}
+              <Link href={`/person/${parent._id}`} className="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-2xl border border-slate-100 transition-all group">
+                <div className="w-14 h-14 rounded-xl bg-slate-100 overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition-transform">
+                  {parent.pic ? (
+                    <img src={parent.pic} className="w-full h-full object-cover" alt={parent.name} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={24} /></div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-[13px] font-black uppercase text-slate-800 group-hover:text-amber-600 transition-colors">{parent.name}</div>
+                  <div className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{parent.generation}-р үеийн төлөөлөл</div>
+                </div>
+              </Link>
             </div>
           )}
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FamilyBlock title="Ах дүүс" count={siblings.length}><SiblingsList data={siblings} /></FamilyBlock>
-            <FamilyBlock title="Үр хүүхэд" count={children.length}><FamilySection data={children} /></FamilyBlock>
+            {/* Ах дүүс хэсэг */}
+            <FamilyBlock title="Ах дүүс" count={siblings.length}>
+              <div className="space-y-2">
+                {siblings.map((sib) => (
+                  <Link key={sib._id} href={`/person/${sib._id}`} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                      {sib.pic ? (
+                        <img src={sib.pic} className="w-full h-full object-cover" alt={sib.name} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={20} /></div>
+                      )}
+                    </div>
+                    <span className="text-[12px] font-bold text-slate-700 uppercase group-hover:text-amber-600">{sib.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </FamilyBlock>
+
+            {/* Үр хүүхэд хэсэг */}
+            <FamilyBlock title="Үр хүүхэд" count={children.length}>
+              <div className="space-y-2">
+                {children.map((child) => (
+                  <Link key={child._id} href={`/person/${child._id}`} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl transition-all group">
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden shrink-0 border border-slate-100">
+                      {child.pic ? (
+                        <img src={child.pic} className="w-full h-full object-cover" alt={child.name} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300"><User size={20} /></div>
+                      )}
+                    </div>
+                    <span className="text-[12px] font-bold text-slate-700 uppercase group-hover:text-amber-600">{child.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </FamilyBlock>
           </div>
         </div>
       </div>
 
-      {/* MODALS SECTION */}
-
-      {/* Edit Form Modal */}
+      {/* MODALS (RegisterForm, Delete, Success) */}
       {isEditOpen && <RegisterForm isOpen={isEditOpen} setIsOpen={setIsEditOpen} editData={person} onUpdate={handleUpdateSuccess} />}
       
-      {/* 1. Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[8px] z-[100] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/20 animate-in fade-in zoom-in duration-200">
-            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-100 relative">
+          <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full text-center shadow-2xl border border-white/20 animate-in fade-in zoom-in duration-200">
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-100">
                <Trash2 size={32} />
-               <div className="absolute -top-1 -right-1 bg-red-500 text-white p-1 rounded-full border-2 border-white animate-pulse">
-                 <AlertTriangle size={12} />
-               </div>
             </div>
-            <h3 className="text-xl font-black uppercase mb-2 text-slate-900 tracking-tight">Устгах уу?</h3>
-            <p className="text-[13px] text-slate-500 mb-8 leading-relaxed px-4 font-medium">
-              Та <span className="font-black text-slate-900 underline decoration-red-200 italic">"{person.name}"</span>-ийн мэдээллийг бүрмөсөн устгахдаа итгэлтэй байна уу?
-            </p>
+            <h3 className="text-xl font-black uppercase mb-2 text-slate-900">Устгах уу?</h3>
+            <p className="text-[13px] text-slate-500 mb-8 font-medium italic">"{person.name}"-ийн мэдээллийг бүрмөсөн устгах уу?</p>
             <div className="flex flex-col gap-3">
-              <button onClick={handleDelete} className="w-full py-4 bg-red-500 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-red-200 hover:bg-red-600 transition-all active:scale-[0.98]">
-                Тийм, устгах
-              </button>
-              <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-4 bg-slate-100 text-slate-500 rounded-2xl text-[11px] font-black uppercase hover:bg-slate-200 transition-all">
-                Болих
-              </button>
+              <button onClick={handleDelete} className="w-full py-4 bg-red-500 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-red-200 hover:bg-red-600 transition-all active:scale-95">Тийм, устгах</button>
+              <button onClick={() => setIsDeleteModalOpen(false)} className="w-full py-4 bg-slate-100 text-slate-500 rounded-2xl text-[11px] font-black uppercase hover:bg-slate-200 transition-all">Болих</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 2. Success Modal */}
       {successModal.open && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-[12px] z-[110] flex items-center justify-center p-4">
-          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-[0_25px_60px_rgba(0,0,0,0.3)] border-b-[6px] border-emerald-500 animate-in zoom-in-95 fade-in duration-300">
-            <div className="relative inline-flex mb-6">
-              <div className="absolute inset-0 bg-emerald-100 rounded-full scale-150 opacity-30 animate-ping" />
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-100 relative z-10">
-                <CheckCircle2 size={40} />
-              </div>
+          <div className="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-3xl animate-in zoom-in-95 fade-in duration-300">
+            <div className="w-20 h-20 text-emerald-500 rounded-full flex items-center justify-center border border-emerald-100 mx-auto mb-6">
+              <CheckCircle2 size={40} />
             </div>
-            <h3 className="text-2xl font-black uppercase mb-3 text-slate-900 tracking-tight">Амжилттай</h3>
-            <p className="text-[13px] text-slate-400 mb-10 font-medium tracking-wide leading-relaxed">
-              {successModal.message}
-            </p>
-            <button 
-              onClick={closeSuccessModal} 
-              className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-slate-800 transition-all active:scale-[0.97]"
-            >
-              ОЙЛГОЛОО
-            </button>
+            <h3 className="text-2xl font-black uppercase mb-3 text-slate-900">Амжилттай</h3>
+            <p className="text-[13px] text-slate-400 mb-10 font-medium">{successModal.message}</p>
+            <button onClick={closeSuccessModal} className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 transition-all active:scale-95">ОЙЛГОЛОО</button>
           </div>
         </div>
       )}
@@ -210,6 +236,7 @@ export default function PersonProfilePage() {
   );
 }
 
+// Туслах функцууд
 function InfoItem({ label, value }) {
   return (
     <div className="group">
@@ -228,9 +255,7 @@ function FamilyBlock({ title, count, children }) {
         </h3>
         <span className="px-3 py-1 bg-slate-900 text-white rounded-xl text-[10px] font-black shadow-sm ring-4 ring-slate-50">{count}</span>
       </div>
-      <div className="min-h-[40px]">
-        {children}
-      </div>
+      <div className="min-h-[40px]">{children}</div>
     </section>
   );
 }

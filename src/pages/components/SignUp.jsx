@@ -135,7 +135,7 @@ export default function SignUp() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC] px-4 py-8">
+    <div className="min-h-screen w-full flex items-center justify-center text-black font-sans bg-[#F8FAFC] px-4 py-8">
       
       {/* QR SCANNER MODAL */}
       {showScanner && (
