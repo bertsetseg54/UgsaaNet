@@ -765,6 +765,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 
+                {/* Хүн дээр дарахад хүүхдийн мэдээлэл харуулах хэсэг */}
                 <div className="flex overflow-x-auto gap-2 no-scrollbar snap-x px-1 pb-3">
                  {groupedByGeneration[gen].map((p) => {
                     const children = profiles.filter(c => c.parentId === p._id);
@@ -778,7 +779,7 @@ export default function LandingPage() {
                         onClick={() => handleCardClick(p._id)}
                         ref={isExpanded ? expandedRef : null}
                       >
-                        <div className={`relative transition-all duration-300 rounded-[2rem] border-2 ${
+                        <div className={`relative transition-all duration-300 rounded-[1.5rem] border-2 ${
                           isRelatedToSelection 
                             ? 'border-amber-500 bg-amber-50/30' 
                             : 'border-transparent'
@@ -791,15 +792,18 @@ export default function LandingPage() {
                             onEdit={(data) => { setEditingProfile(data); setIsEditOpen(true); }}
                           />
                           
-                          {children.length > 0 && (
-                            <div 
-                              className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md border shadow-sm transition-all flex items-center gap-1
-                                ${isExpanded ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-slate-400 border-slate-100 hover:text-amber-600'}`}
-                            >
-                              <span className="text-[9px] font-black">{children.length}</span>
+                          {/* Хүүхэдтэй эсвэл хүүхэдгүйг заах хэсэг */}
+                          <div 
+                            className={`absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md border shadow-sm transition-all flex items-center gap-1
+                              ${isExpanded ? 'bg-amber-500 text-white border-amber-600' : 'bg-white text-slate-400 border-slate-100 hover:text-amber-600'}`}
+                          >
+                            <span className="text-[9px] font-black">
+                              {children.length > 0 ? `${children.length} хүүхэд` : "Хүүхэдгүй"}
+                            </span>
+                            {children.length > 0 && (
                               <ChevronDown size={10} className={`${isExpanded ? 'rotate-180' : ''}`} />
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     );

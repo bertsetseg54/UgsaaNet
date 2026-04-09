@@ -31,106 +31,86 @@ export default function StoryDetail() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#FDFDFD] gap-4">
         <div className="w-8 h-8 border-2 border-slate-100 border-t-amber-500 rounded-full animate-spin" />
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-          Уншиж байна...
-        </p>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Уншиж байна...</p>
       </div>
     );
 
   if (!story)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFDFD] gap-6 px-6 pb-24 md:pb-12">
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-          Түүх олдсонгүй
-        </p>
-        <Link
-          href="/story"
-          className="px-8 py-3 bg-amber-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-amber-700 transition-colors"
-        >
-          Буцах
-        </Link>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FDFDFD] gap-4 px-4">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Түүх олдсонгүй</p>
+        <Link href="/story" className="px-6 py-2 bg-amber-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Буцах</Link>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] pb-24 md:pb-12">
-      {/* HEADER */}
+    <div className="min-h-screen bg-[#FDFDFD] pb-12">
+      {/* HEADER - Өндөр болон padding багасгасан */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-3 md:px-8 py-3 flex items-center justify-between gap-3">
-          <Link
-            href="/story"
-            className="flex items-center gap-2 p-2 -ml-2 text-slate-400 hover:text-amber-600 transition-colors"
-          >
-            <ChevronLeft size={22} strokeWidth={2.5} />
+        <div className="max-w-6xl mx-auto px-4 py-2 flex items-center justify-between gap-2">
+          <Link href="/story" className="p-1 -ml-1 text-slate-400 hover:text-amber-600 transition-colors">
+            <ChevronLeft size={20} strokeWidth={2.5} />
           </Link>
-          <h1 className="flex-1 text-center text-sm md:text-lg font-black text-slate-900 line-clamp-2">
+          <h1 className="flex-1 text-center text-sm font-black text-slate-900 line-clamp-1">
             {story.title}
           </h1>
-          <div className="w-10" />
+          <div className="w-8" />
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-3 md:px-6 pt-20 md:pt-24">
-        {/* Hero Image */}
+      <main className="max-w-4xl mx-auto px-4 pt-16 md:pt-20">
+        {/* Hero Image - Зайг нь багасгасан */}
         {story.image && (
-          <div className="rounded-xl md:rounded-2xl overflow-hidden h-64 md:h-96 mb-6 md:mb-8 shadow-lg">
-            <img
-              src={story.image}
-              className="w-full h-full object-cover"
-              alt={story.title}
-            />
+          <div className="rounded-xl overflow-hidden h-48 md:h-80 mb-4 shadow-md">
+            <img src={story.image} className="w-full h-full object-cover" alt={story.title} />
           </div>
         )}
 
-        {/* Story Meta */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 md:mb-8">
+        {/* Story Meta - Бага зайтай */}
+        <div className="flex flex-wrap gap-2 mb-3">
           {story.date && (
-            <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-amber-50 border border-amber-200 rounded-lg w-fit">
-              <Calendar size={14} className="text-amber-600" />
-              <span className="text-[10px] md:text-xs font-bold text-amber-700 uppercase tracking-wider">
-                {story.date}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-md w-fit">
+              <Calendar size={12} className="text-amber-600" />
+              <span className="text-[9px] md:text-[10px] font-bold text-amber-700 uppercase tracking-wider">
+                {story.date} онд
               </span>
             </div>
           )}
           {story.author && (
-            <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 bg-slate-50 border border-slate-200 rounded-lg w-fit">
-              <User size={14} className="text-slate-600" />
-              <span className="text-[10px] md:text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-md w-fit">
+              <User size={12} className="text-slate-600" />
+              <span className="text-[9px] md:text-[10px] font-bold text-slate-700 uppercase tracking-wider">
                 {story.author}
               </span>
             </div>
           )}
         </div>
 
-        {/* Story Title */}
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 mb-6 md:mb-8 leading-tight tracking-tight">
+        {/* Story Title - Зайг хумисан */}
+        <h1 className="text-lg md:text-2xl font-black text-slate-900 mb-3 leading-snug tracking-tight">
           {story.title}
         </h1>
 
-        {/* Story Content */}
-        <article className="prose prose-sm md:prose-base lg:prose-lg max-w-none mb-12">
-          <div className="border-l-4 border-amber-400 pl-4 md:pl-6 py-2">
-            <p className="text-sm md:text-base lg:text-lg text-slate-700 leading-relaxed md:leading-8 whitespace-pre-line font-serif">
+        {/* Story Content - Доторх зай (padding) багасгасан */}
+        <article className="prose prose-sm max-w-none mb-6">
+          <div className="border-l-3 border-amber-400 pl-4 py-1">
+            <p className="text-sm md:text-base text-slate-700 leading-relaxed whitespace-pre-line font-serif">
               {story.content}
             </p>
           </div>
         </article>
 
         {/* Back Button */}
-        <div className="pb-12 md:pb-6">
+        <div className="pb-4">
           <Link
             href="/story"
-            className="inline-flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs md:text-sm font-bold uppercase tracking-wider transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors"
           >
-            <ChevronLeft size={16} />
-            Бүх түүхүүдрүү
+            <ChevronLeft size={14} />
+            Буцах
           </Link>
         </div>
       </main>
-
-      <style jsx global>{`
-        .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
-      `}</style>
     </div>
   );
 }
