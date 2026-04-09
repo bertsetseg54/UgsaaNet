@@ -59,7 +59,7 @@ export default function ProfileCard({ profile, profiles, onDelete }) {
             <p className="text-[8px] font-black text-amber-600/80 uppercase tracking-tighter leading-none mb-1">
               {father ? `${father.name}-ын` : (parentName || "Ургийн тэргүүн")}
             </p>
-            <h1 className="text-[11px] sm:text-[12px] font-[1000] text-slate-800 group-hover:text-amber-600 truncate uppercase italic leading-tight">
+            <h1 className="text-[11px] sm:text-[12px] font-[1000] text-slate-800 group-hover:text-amber-600 truncate uppercase  leading-tight">
               {name}
             </h1>
             <p className="text-[7px] font-black text-slate-400 uppercase mt-1 bg-slate-50/80 px-2 py-0.5 rounded-lg inline-block tracking-widest">

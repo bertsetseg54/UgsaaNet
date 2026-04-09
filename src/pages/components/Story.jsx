@@ -15,7 +15,6 @@ export default function Story() {
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isSubmitLoading, setIsSubmitLoading] = useState(false);
   
-  // LOGOUT MODAL STATE
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [formData, setFormData] = useState({ title: "", date: "", content: "" });
@@ -42,9 +41,14 @@ export default function Story() {
   const fetchStories = useCallback(async () => {
     setIsPageLoading(true);
     try {
-      const user = JSON.parse(localStorage.getItem("user_data") || "{}");
+      const storedData = localStorage.getItem("user_data");
+      if (!storedData) return router.push("/login");
+      
+      const user = JSON.parse(storedData);
       setUserData(user);
+      
       if (!user.familyId) return router.push("/start");
+      
       const res = await fetch(`/api/stories?familyId=${encodeURIComponent(user.familyId)}`);
       const data = await res.json();
       setStories(Array.isArray(data) ? data : []);
@@ -55,7 +59,9 @@ export default function Story() {
     }
   }, [router]);
 
-  useEffect(() => { fetchStories(); }, [fetchStories]);
+  useEffect(() => { 
+    fetchStories(); 
+  }, [fetchStories]);
 
   const handleLogout = () => {
     localStorage.removeItem("user_data");
@@ -85,6 +91,10 @@ export default function Story() {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
+      // Өмнөх preview URL-г цэвэрлэх (memory leak-ээс сэргийлэх)
+      if (imagePreview && !imagePreview.startsWith('http')) {
+        URL.revokeObjectURL(imagePreview);
+      }
       setImagePreview(URL.createObjectURL(selectedFile));
     }
   };
@@ -103,9 +113,7 @@ export default function Story() {
       return showToast("Мэдээллээ бүрэн бөглөнө үү", "error");
     }
 
-    const currentUser = JSON.parse(localStorage.getItem("user_data") || "{}");
     setIsSubmitLoading(true);
-
     try {
       let finalImageUrl = editingStory?.image || "";
       if (file) {
@@ -123,7 +131,7 @@ export default function Story() {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, image: finalImageUrl, familyId: currentUser.familyId }),
+        body: JSON.stringify({ ...formData, image: finalImageUrl, familyId: userData.familyId }),
       });
 
       if (response.ok) {
@@ -140,15 +148,14 @@ export default function Story() {
 
   const performDelete = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user_data"));
       const res = await fetch(`/api/stories/${deleteModal.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ familyId: user.familyId }),
+        body: JSON.stringify({ familyId: userData.familyId }),
       });
       if (res.ok) {
         fetchStories();
-        setDeleteModal({ open: false });
+        setDeleteModal({ open: false, id: null });
         showToast("Устгагдлаа");
       }
     } catch (err) { showToast("Алдаа", "error"); }
@@ -173,7 +180,6 @@ export default function Story() {
             </div>
           </Link>
           
-          {/* SEARCH (Always visible on mobile now) */}
           <div className="flex-1 max-w-sm relative">
             <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
@@ -186,17 +192,18 @@ export default function Story() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => { localStorage.clear(); router.push("/start"); }} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg"><LogOut size={18} /></button>
+            <button onClick={() => setShowLogoutConfirm(true)} className="p-2 text-slate-400 hover:text-red-500 bg-slate-50 rounded-lg"><LogOut size={18} /></button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 pt-20">
+      <main className="max-w-7xl mx-auto px-4 pt-16">
+        {/* Title Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
            <div className="flex items-center gap-3">
               <Link href="/" className="p-2 bg-white border border-slate-100 rounded-xl text-slate-400 hover:bg-amber-500 hover:text-white transition-all"><ChevronLeft size={18} /></Link>
               <div>
-                 <h1 className="text-xl font-[1000] uppercase italic text-slate-800">Гэр Бүлийн Дурсамж</h1>
+                 <h1 className="text-xl font-[1000] uppercase text-slate-800">Гэр Бүлийн Дурсамж</h1>
                  <p className="text-[9px] font-bold text-slate-400 uppercase">Нийт {stories.length} түүх</p>
               </div>
            </div>
@@ -208,7 +215,7 @@ export default function Story() {
         {isPageLoading ? (
            <div className="flex justify-center py-20"><div className="w-8 h-8 border-3 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : filteredStories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 px-4 bg-white border border-dashed border-slate-200 rounded-[3rem] text-center">
+          <div className="flex flex-col items-center justify-center py-18 px-4 bg-white border border-dashed border-slate-200 rounded-[3rem] text-center">
             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mb-4 shadow-2xl">
               <BookOpen size={32} />
             </div>
@@ -218,11 +225,10 @@ export default function Story() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-700">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in duration-700">
             {filteredStories.map((s) => (
               <div key={s._id} className="bg-white rounded-[2rem] border border-slate-100 overflow-hidden hover:shadow-xl transition-all group">
                 <div className="h-48 relative bg-slate-100">
-                  {/* DISPLAY SAVED IMAGE */}
                   {s.image ? (
                     <img src={s.image} className="w-full h-full object-cover" alt={s.title} />
                   ) : (
@@ -249,27 +255,15 @@ export default function Story() {
         )}
       </main>
 
-      {/* MOBILE NAV */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
-        <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
-          <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
-          <button onClick={() => setIsModalOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
-            <Plus size={16} strokeWidth={4} />Түүх Нэмэх
-          </button>
-          <Link href="/story" className="p-3 text-amber-400"><BookOpen size={22} /></Link>
-        </div>
-      </nav>
       {/* STORY MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
           <form onSubmit={handleSubmit} className="bg-white w-full max-w-lg rounded-[2rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-             {/* Modal Content - (Keep existing input fields) */}
              <div className="p-5 border-b border-slate-50 flex justify-between items-center">
                 <h2 className="text-xl font-black uppercase tracking-tighter">{editingStory ? "Засах" : "Шинэ Дурсамж"}</h2>
                 <button type="button" onClick={closeModal} className="p-2 bg-slate-50 rounded-xl text-slate-400"><X size={18} /></button>
              </div>
              <div className="p-5 space-y-5 overflow-y-auto no-scrollbar flex-1">
-                {/* Image Picker */}
                 <div className="relative group cursor-pointer" onClick={() => fileInputRef.current.click()}>
                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                    {imagePreview ? (
@@ -286,7 +280,6 @@ export default function Story() {
                       </div>
                    )}
                 </div>
-                {/* Inputs */}
                 <div className="grid grid-cols-2 gap-4">
                    <input value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} placeholder="Огноо: 1995" className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-amber-500" />
                    <input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="Гарчиг" className="w-full px-4 py-3 bg-slate-50 rounded-xl font-bold text-sm outline-none border border-transparent focus:border-amber-500" />
@@ -302,7 +295,24 @@ export default function Story() {
           </form>
         </div>
       )}
-      {/* DELETE CONFIRMATION MODAL */}
+
+      {/* LOGOUT CONFIRMATION */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <LogOut size={32} />
+            </div>
+            <h3 className="text-sm font-black text-slate-800 uppercase mb-2">Гарах уу?</h3>
+            <div className="flex gap-3">
+              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-[10px] uppercase">Болих</button>
+              <button onClick={handleLogout} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase">Гарах</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION */}
       {deleteModal.open && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-xs rounded-[2.5rem] p-8 text-center shadow-2xl animate-in zoom-in-95 duration-200">
@@ -311,46 +321,17 @@ export default function Story() {
             </div>
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight mb-2">Устгахдаа итгэлтэй байна уу?</h3>
             <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed mb-6">
-              Энэ дурсамжийг устгавал дахин сэргээх боломжгүй болохыг анхаарна уу.
+              Энэ дурсамжийг устгавал дахин сэргээх боломжгүй.
             </p>
             <div className="flex gap-3">
-              <button 
-                onClick={() => setDeleteModal({ open: false, id: null })} 
-                className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-[10px] uppercase active:scale-95 transition-all"
-              >
-                Болих
-              </button>
-              <button 
-                onClick={performDelete} 
-                className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-100 active:scale-95 transition-all"
-              >
-                Устгах
-              </button>
+              <button onClick={() => setDeleteModal({ open: false, id: null })} className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-[10px] uppercase">Болих</button>
+              <button onClick={performDelete} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-100">Устгах</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* QR MODAL (Stay the same) */}
-      {showQRModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 text-center shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Гэр бүлийн код</h3>
-              <button onClick={() => setShowQRModal(false)} className="p-2 bg-slate-50 rounded-full text-slate-400"><X size={16} /></button>
-            </div>
-            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex items-center justify-center mb-6">
-              <QRCodeSVG value={userData?.familyId || ""} size={180} level="H" />
-            </div>
-            <div className="flex items-center justify-between bg-slate-50 px-5 py-3 rounded-2xl mb-4">
-              <code className="text-lg font-black text-slate-800">{userData?.familyId}</code>
-              <button onClick={handleCopyCode} className="text-indigo-600">{copySuccess ? <CheckCircle2 size={20} /> : <Copy size={20} />}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MOBILE NAV */}
+      {/* MOBILE NAV (Single Instance) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
         <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
           <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
