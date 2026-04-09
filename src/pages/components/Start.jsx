@@ -106,13 +106,13 @@ export default function Start() {
           </div>
 
           {/* Footer Bottom */}
-          <footer className="opacity-50 text-center">
-            <p className="text-[9px] text-white tracking-[0.6em] text-xl uppercase font-medium">
-              ©Br-Coding
-            </p>
-          </footer>
         </div>
       </div>
+          <footer className="opacity-50 text-center pb-5">
+            <p className="text-[9px] text-white tracking-[0.6em] text-xl uppercase font-medium">
+              ©Ugsaa-Net
+            </p>
+          </footer>
 
       <style jsx global>{`
         @keyframes subtle-zoom {
