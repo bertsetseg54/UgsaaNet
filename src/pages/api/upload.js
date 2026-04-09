@@ -1,31 +1,29 @@
-import { put } from '@vercel/blob';
+// pages/api/upload.js
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '10mb', // Зургийн дээд хэмжээг 10MB болгож өсгөв
+    },
+  },
+};
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    // 1. Хүсэлтээс файлын нэрийг авах (query эсвэл header-ээс)
-    const filename = req.query.filename || 'image.png';
+    const { image } = req.body; // Frontend-ээс ирэх Base64 текст
 
-    // 2. Vercel Blob руу шууд хуулах
-    // Энэ нь Vercel-ийн үүлэн санд хадгалах бөгөөд Deploy дээр хэзээ ч алдаа заахгүй
-    const blob = await put(filename, req, {
-      access: 'public',
-    });
+    if (!image) {
+      return res.status(400).json({ error: "Зураг олдсонгүй" });
+    }
 
-    // 3. Хадгалагдсан URL-ийг буцаах
-    return res.status(200).json({ url: blob.url });
+    // Vercel дээр файл бичих боломжгүй тул текстийг шууд буцаана.
+    // Энэ текст (Base64) нь таны MongoDB-д хадгалагдах болно.
+    return res.status(200).json({ url: image });
   } catch (error) {
     console.error("Upload error:", error);
-    return res.status(500).json({ error: "Upload failed", details: error.message });
+    return res.status(500).json({ error: "Upload failed" });
   }
 }
-
-// Биеийн хэмжээг хязгаарлахгүй байх тохиргоо (заавал биш)
-export const config = {
-  api: {
-    bodyParser: false, // Stream-ээр унших тул false хэвээр үлдээж болно
-  },
-};

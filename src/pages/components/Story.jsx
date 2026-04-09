@@ -108,47 +108,64 @@ export default function Story() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.title || !formData.date || !formData.content) {
-      return showToast("Мэдээллээ бүрэн бөглөнө үү", "error");
-    }
+  e.preventDefault();
+  if (!formData.title || !formData.date || !formData.content) {
+    return showToast("Мэдээллээ бүрэн бөглөнө үү", "error");
+  }
 
-    setIsSubmitLoading(true);
-    try {
-      let finalImageUrl = editingStory?.image || "";
-      // handleSubmit доторх зургийн хэсгийг ингэж өөрчил:
-      if (file) {
-        // filename-ийг query string-ээр дамжуулна
-        const uploadRes = await fetch(`/api/upload?filename=${file.name}`, {
-          method: "POST",
-          body: file, // FormData биш, шууд файлыг өөрөөр нь илгээх
-        });
-        
-        if (!uploadRes.ok) throw new Error("Upload failed");
-        const uploadJson = await uploadRes.json();
-        finalImageUrl = uploadJson.url; // Энэ нь https://... гэсэн URL ирнэ
-      }
+  setIsSubmitLoading(true);
 
-      const method = editingStory ? "PUT" : "POST";
-      const url = editingStory ? `/api/stories/${editingStory._id}` : `/api/stories`;
+  try {
+    let finalImageUrl = editingStory?.image || "";
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, image: finalImageUrl, familyId: userData.familyId }),
+    // Шинэ зураг сонгосон бол
+    if (file) {
+      // 1. Файлыг Base64 текст рүү хөрвүүлэх (FileReader ашиглан)
+      const base64Image = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
       });
 
-      if (response.ok) {
-        closeModal();
-        fetchStories();
-        showToast(editingStory ? "Шинэчиллээ" : "Хадгаллаа");
-      }
-    } catch (err) {
-      showToast("Алдаа гарлаа", "error");
-    } finally {
-      setIsSubmitLoading(false);
+      // 2. API-руу FormData биш JSON илгээнэ
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64Image }),
+      });
+
+      if (!uploadRes.ok) throw new Error("Upload failed");
+      const uploadJson = await uploadRes.json();
+      finalImageUrl = uploadJson.url; // Энэ нь "data:image/jpeg;base64,..." текст байна
     }
-  };
+
+    // 3. Үндсэн Story-г хадгалах (Энэ хэсэг таны өмнөх кодтой ижил)
+    const method = editingStory ? "PUT" : "POST";
+    const url = editingStory ? `/api/stories/${editingStory._id}` : `/api/stories`;
+
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ 
+        ...formData, 
+        image: finalImageUrl, 
+        familyId: userData.familyId 
+      }),
+    });
+
+    if (response.ok) {
+      closeModal();
+      fetchStories();
+      showToast(editingStory ? "Шинэчиллээ" : "Хадгаллаа");
+    }
+  } catch (err) {
+    console.error(err);
+    showToast("Алдаа гарлаа", "error");
+  } finally {
+    setIsSubmitLoading(false);
+  }
+};
 
   const performDelete = async () => {
     try {
