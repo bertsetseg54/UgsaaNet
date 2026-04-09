@@ -116,13 +116,17 @@ export default function Story() {
     setIsSubmitLoading(true);
     try {
       let finalImageUrl = editingStory?.image || "";
+      // handleSubmit доторх зургийн хэсгийг ингэж өөрчил:
       if (file) {
-        const uploadData = new FormData();
-        uploadData.append("file", file);
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadData });
+        // filename-ийг query string-ээр дамжуулна
+        const uploadRes = await fetch(`/api/upload?filename=${file.name}`, {
+          method: "POST",
+          body: file, // FormData биш, шууд файлыг өөрөөр нь илгээх
+        });
+        
         if (!uploadRes.ok) throw new Error("Upload failed");
         const uploadJson = await uploadRes.json();
-        finalImageUrl = uploadJson.url;
+        finalImageUrl = uploadJson.url; // Энэ нь https://... гэсэн URL ирнэ
       }
 
       const method = editingStory ? "PUT" : "POST";
