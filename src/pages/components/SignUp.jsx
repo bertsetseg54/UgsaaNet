@@ -80,46 +80,51 @@ export default function SignUpPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  e.preventDefault();
+  
+  if (formData.password !== formData.confirmPassword) {
+    setError("Нууц үгүүд таарахгүй байна");
+    return;
+  }
 
-    try {
-      // Create үед шинэ ID үүсгэнэ, Join үед оруулсан кодыг авна
-      const targetFamilyId = familyMode === "create" ? generateFamilyId() : formData.familyCode;
+  setLoading(true);
+  setError("");
 
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: familyMode === "create" ? "admin" : "member",
-        familyId: targetFamilyId,
-        familyName: formData.familyName || "Миний Ураг"
-      };
+  try {
+    // Кодыг авах (Шинээр үүсгэх эсвэл нэгдэх)
+    const targetFamilyId = familyMode === "create" ? generateFamilyId() : formData.familyCode.trim();
 
-      const res = await fetch("/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      familyId: targetFamilyId, // Зөвхөн ID байна, role байхгүй
+      familyName: familyMode === "create" ? formData.familyName : ""
+    };
 
-      const data = await res.json();
-      
-      if (res.ok) {
-        localStorage.setItem("user_data", JSON.stringify(data.user));
-        setShowSuccessModal(true);
-        setTimeout(() => {
-          router.push("/");
-        }, 1500);
-      } else {
-        setError(data.message || "Бүртгэл амжилтгүй");
-      }
-    } catch (err) {
-      setError("Холболтын алдаа гарлаа");
-    } finally {
-      setLoading(false);
+    const res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      localStorage.setItem("user_data", JSON.stringify(data.user));
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+    } else {
+      setError(data.message || "Бүртгэл амжилтгүй");
     }
-  };
+  } catch (err) {
+    setError("Холболтын алдаа гарлаа");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!mounted) return null;
 
