@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   Fingerprint, Search, X, Home, BookOpen, Plus, LogOut,
   Trash2, Edit3, Image as ImageIcon, ChevronLeft, ArrowRight,
-  Camera
+  Camera, AlertCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -74,6 +74,11 @@ export default function Story() {
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
+      // Файлын хэмжээг шалгах (жишээ нь 2MB-аас ихгүй)
+      if (selectedFile.size > 2 * 1024 * 1024) {
+        showToast("Зургийн хэмжээ хэтэрхий том байна (Max 2MB)", "error");
+        return;
+      }
       setFile(selectedFile);
       if (imagePreview && !imagePreview.startsWith('http')) {
         URL.revokeObjectURL(imagePreview);
@@ -125,27 +130,40 @@ export default function Story() {
     } catch (err) { showToast("Алдаа гарлаа", "error"); } finally { setIsSubmitLoading(false); }
   };
 
+  // DELETE ФУНКЦ ЗАСАГДСАН
   const performDelete = async () => {
+    if (!deleteModal.id) return;
+    setIsSubmitLoading(true);
     try {
       const res = await fetch(`/api/stories/${deleteModal.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ familyId: userData.familyId }),
       });
-      if (res.ok) { fetchStories(); setDeleteModal({ open: false, id: null }); showToast("Устгагдлаа"); }
-    } catch (err) { showToast("Алдаа", "error"); }
+      if (res.ok) { 
+        fetchStories(); 
+        setDeleteModal({ open: false, id: null }); 
+        showToast("Дурсамж устлаа"); 
+      } else {
+        showToast("Устгахад алдаа гарлаа", "error");
+      }
+    } catch (err) { 
+      showToast("Серверийн алдаа", "error"); 
+    } finally {
+      setIsSubmitLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] pb-16 relative font-sans">
       {/* TOAST */}
       {toast.show && (
-        <div className={`fixed top-16 left-1/2 -translate-x-1/2 z-[300] flex items-center gap-2 px-3 py-1.5 rounded-lg shadow-xl border backdrop-blur-md ${toast.type === "error" ? "bg-red-50 text-red-600 border-red-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"}`}>
+        <div className={`fixed top-16 left-1/2 -translate-x-1/2 z-[350] flex items-center gap-2 px-3 py-1.5 rounded-lg shadow-xl border backdrop-blur-md ${toast.type === "error" ? "bg-red-50 text-red-600 border-red-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"}`}>
           <span className="text-[9px] font-black uppercase tracking-widest">{toast.message}</span>
         </div>
       )}
 
-      {/* HEADER - Reduced Padding */}
+      {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100 px-3 py-2">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-1.5 shrink-0">
@@ -170,50 +188,59 @@ export default function Story() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 pt-14">
-        {/* Title Section - Reduced Margins */}
-        <div className="flex items-center justify-between gap-4 mb-4">
+     <main className="max-w-7xl mx-auto px-2 pt-13 ">
+        <div className="flex items-center justify-between mb-3 px-1">
            <div className="flex items-center gap-2">
-              <Link href="/" className="p-1.5 bg-white border border-slate-100 rounded-lg text-slate-400"><ChevronLeft size={16} /></Link>
+              <Link href="/" className="p-1 bg-slate-50 rounded text-slate-400"><ChevronLeft size={16} /></Link>
               <div>
-                 <h1 className="text-base font-black uppercase text-slate-800">Миний гэр бүлийн Дурсамж</h1>
-                 <p className="text-[8px] font-bold text-slate-400 uppercase">{stories.length} түүх</p>
+                 <h1 className="text-[12px] font-black md:text-sm uppercase text-slate-800 leading-tight">
+                     Гэр Бүлийн Дурсамж
+                  </h1>
+                <p className="text-[7px] font-bold text-slate-400 uppercase tracking-tighter">
+                  {stories.length} түүх
+                </p>
               </div>
            </div>
-           <button onClick={() => setIsModalOpen(true)} className="hidden md:flex items-center gap-1.5 bg-slate-900 text-white px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest">
-             <Plus size={12} strokeWidth={3} /> Нэмэх
+           <button onClick={() => setIsModalOpen(true)} className="bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
+             <Plus size={12} /> Нэмэх
            </button>
         </div>
 
         {isPageLoading ? (
-           <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
+           <div className="flex justify-center py-8"><div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" /></div>
         ) : filteredStories.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 px-4 bg-white border border-dashed border-slate-200 rounded-3xl text-center">
-            <BookOpen size={24} className="text-slate-300 mb-2" />
-            <h3 className="text-[10px] font-black text-slate-800 uppercase mb-3">Түүх алга</h3>
-            <button onClick={() => setIsModalOpen(true)} className="bg-amber-500 text-white px-6 py-2.5 rounded-xl text-[9px] font-black uppercase">Анхны түүх нэмэх</button>
+          <div className="flex flex-col items-center justify-center py-10 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+            <BookOpen size={20} className="text-slate-300 mb-2" />
+            <p className="text-[9px] font-black text-slate-400 uppercase">Одоогоор түүх алга</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
             {filteredStories.map((s) => (
-              <div key={s._id} className="bg-white rounded-2xl border border-slate-100 overflow-hidden group">
-                <div className="h-36 relative bg-slate-100">
+              <div key={s._id} className="bg-white rounded-xl border border-slate-100 overflow-hidden flex flex-col">
+                {/* ЗУРГИЙГ БҮТНЭЭР НЬ ХАРАГДУУЛАХ ХЭСЭГ */}
+                <div className="h-32 sm:h-40 relative bg-slate-50 flex items-center justify-center p-1">
                   {s.image ? (
-                    <img src={s.image} className="w-full h-full object-cover" alt={s.title} />
+                    <img 
+                      src={s.image} 
+                      className="max-w-full max-h-full object-contain" // Энэ нь зургийг бүтнээр нь багтаана
+                      alt={s.title} 
+                    />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-300"><ImageIcon size={24} /></div>
+                    <div className="text-slate-200"><ImageIcon size={20} /></div>
                   )}
-                  <div className="absolute top-2 left-2 bg-white/90 px-2 py-0.5 rounded text-[8px] font-black text-amber-600 uppercase">{s.date} он</div>
+                  <div className="absolute top-1 left-1 bg-black/50 backdrop-blur-sm px-1.5 py-0.5 rounded text-[7px] font-bold text-white uppercase">{s.date}</div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-sm font-black text-slate-800 mb-1 truncate">{s.title}</h3>
-                  <p className="text-slate-500 text-[10px] line-clamp-1 mb-3 italic opacity-80">"{s.content}"</p>
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-50">
-                    <div className="flex gap-1">
-                       <button onClick={() => { setEditingStory(s); setFormData({title: s.title, date: s.date, content: s.content}); setImagePreview(s.image); setIsModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-amber-500"><Edit3 size={14} /></button>
-                       <button onClick={() => setDeleteModal({ open: true, id: s._id })} className="p-1.5 text-slate-400 hover:text-red-500"><Trash2 size={14} /></button>
+                
+                <div className="p-2 flex-1 flex flex-col">
+                  <h3 className="text-[11px] font-black text-slate-800 truncate uppercase mb-0.5">{s.title}</h3>
+                  <p className="text-slate-500 text-[9px] line-clamp-1 mb-2 leading-tight">"{s.content}"</p>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-50 mt-auto">
+                    <div className="flex gap-0.5">
+                       <button onClick={() => { setEditingStory(s); setFormData({title: s.title, date: s.date, content: s.content}); setImagePreview(s.image); setIsModalOpen(true); }} className="p-1 text-slate-400 hover:text-amber-500"><Edit3 size={12} /></button>
+                       <button onClick={() => setDeleteModal({ open: true, id: s._id })} className="p-1 text-slate-400 hover:text-red-500"><Trash2 size={12} /></button>
                     </div>
-                    <Link href={`/story/${s._id}`} className="text-[8px] font-black uppercase text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1 group-hover:bg-amber-500 group-hover:text-white transition-all">Унших <ArrowRight size={12} /></Link>
+                    <Link href={`/story/${s._id}`} className="p-1 text-slate-800 hover:text-amber-500 transition-colors"><ArrowRight size={14} /></Link>
                   </div>
                 </div>
               </div>
@@ -222,48 +249,64 @@ export default function Story() {
         )}
       </main>
 
-      {/* MODAL - More compact */}
+      {/* MODAL (ADD/EDIT) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 bg-slate-900/40 backdrop-blur-sm">
-          <form onSubmit={handleSubmit} className="bg-white w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-             <div className="px-4 py-3 border-b border-slate-50 flex justify-between items-center">
-                <h2 className="text-xs font-black uppercase tracking-tight">{editingStory ? "Засах" : "Шинэ Дурсамж"}</h2>
-                <button type="button" onClick={closeModal} className="p-1.5 text-slate-400"><X size={16} /></button>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-2 bg-slate-900/60 backdrop-blur-sm">
+          <form onSubmit={handleSubmit} className="bg-white w-full max-w-sm rounded-xl overflow-hidden shadow-2xl flex flex-col max-h-[95vh]">
+             <div className="px-3 py-2 border-b border-slate-50 flex justify-between items-center bg-white">
+                <h2 className="text-[9px] font-black uppercase tracking-widest text-slate-800">{editingStory ? "Засварлах" : "Шинэ Түүх"}</h2>
+                <button type="button" onClick={closeModal} className="p-1 text-slate-400"><X size={16} /></button>
              </div>
              <div className="p-4 space-y-3 overflow-y-auto flex-1 no-scrollbar">
-                <div className="cursor-pointer" onClick={() => fileInputRef.current.click()}>
+                <div className="cursor-pointer group relative" onClick={() => fileInputRef.current.click()}>
                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                    {imagePreview ? (
-                      <div className="w-full h-32 rounded-xl overflow-hidden relative">
-                         <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
+                      <div className="w-full h-36 bg-slate-50 rounded-lg flex items-center justify-center p-1 border border-slate-100">
+                         <img src={imagePreview} className="max-w-full max-h-full object-contain" alt="Preview" />
                       </div>
                    ) : (
-                      <div className="w-full h-24 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-400">
-                         <Camera size={20} />
+                      <div className="w-full h-20 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-amber-300 transition-colors">
+                         <Camera size={16} />
                          <span className="text-[8px] font-black uppercase">Зураг сонгох</span>
                       </div>
                    )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                   <input value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} placeholder="Огноо" className="w-full px-3 py-2 bg-slate-50 rounded-lg text-xs outline-none focus:border-amber-500 border border-transparent" />
-                   <input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="Гарчиг" className="w-full px-3 py-2 bg-slate-50 rounded-lg text-xs outline-none focus:border-amber-500 border border-transparent" />
+                <div className="grid grid-cols-2 gap-2">
+                   <input value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} placeholder="Огноо (2024)" className="w-full px-2 py-2 bg-slate-50 rounded text-[11px] outline-none border border-transparent focus:border-amber-100" />
+                   <input value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} placeholder="Гарчиг" className="w-full px-2 py-2 bg-slate-50 rounded text-[11px] outline-none border border-transparent focus:border-amber-100" />
                 </div>
-                <textarea value={formData.content} onChange={(e) => setFormData({...formData, content: e.target.value})} placeholder="Түүх..." className="w-full p-3 bg-slate-50 rounded-lg text-xs min-h-[100px] outline-none border border-transparent focus:border-amber-500" />
+                <textarea value={formData.content} onChange={(e) => setFormData({...formData, content: e.target.value})} placeholder="Түүхээ бичээрэй..." className="w-full p-2 bg-slate-50 rounded text-[11px] min-h-[100px] outline-none border border-transparent focus:border-amber-100 resize-none" />
              </div>
-             <div className="p-4 bg-white border-t border-slate-50 flex gap-2">
+             <div className="p-3 bg-slate-50 border-t border-slate-100 flex gap-2">
                 <button type="button" onClick={closeModal} className="flex-1 py-2 text-[9px] font-black uppercase text-slate-400">Болих</button>
-                <button type="submit" disabled={isSubmitLoading} className="flex-[2] py-2 bg-slate-900 text-white font-black rounded-lg text-[9px] uppercase">
-                  {isSubmitLoading ? "Хадгалж байна..." : "Хадгалах"}
+                <button type="submit" disabled={isSubmitLoading} className="flex-[2] py-2 bg-slate-900 text-white font-black rounded text-[9px] uppercase active:scale-95 transition-all">
+                  {isSubmitLoading ? "Уншиж байна..." : "Хадгалах"}
                 </button>
              </div>
           </form>
         </div>
       )}
 
-      {/* MOBILE NAV - Compact */}
+      {/* DELETE MODAL */}
+      {deleteModal.open && (
+        <div className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-5 max-w-[260px] w-full shadow-2xl text-center">
+            <div className="w-10 h-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center mx-auto mb-3">
+               <AlertCircle size={20} />
+            </div>
+            <h3 className="text-xs font-black text-slate-800 mb-1 uppercase">Устгах уу?</h3>
+            <p className="text-[9px] text-slate-500 font-bold uppercase mb-5 leading-tight">Та энэ дурсамжийг бүрмөсөн устгахдаа итгэлтэй байна уу?</p>
+            <div className="flex gap-2">
+              <button onClick={() => setDeleteModal({ open: false, id: null })} className="flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-lg font-black text-[9px] uppercase">Болих</button>
+              <button onClick={performDelete} className="flex-1 py-2.5 bg-red-500 text-white rounded-lg font-black text-[9px] uppercase">Устгах</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* MOBILE NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-2 bg-gradient-to-t from-white to-transparent">
         <div className="bg-slate-900 rounded-2xl p-1.5 shadow-2xl flex items-center justify-between">
-            <Link href="/landingPage" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
+            <Link href="/" className="p-3 text-white/60 hover:text-amber-400"><Home size={22} /></Link>
           <button onClick={() => setIsModalOpen(true)} className="flex-1 flex items-center justify-center gap-2 bg-amber-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase mx-2 shadow-xl">
             <Plus size={16} strokeWidth={4} /> Түүх Нэмэх
           </button>
@@ -273,18 +316,16 @@ export default function Story() {
 
       {/* LOGOUT CONFIRM */} 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-[300] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 text-center">
-          <div className="bg-white rounded-[2rem] p-6 max-w-[280px] w-full shadow-2xl border border-slate-100">
+        <div className="fixed inset-0 z-[400] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 text-center">
+          <div className="bg-white rounded-[2rem] p-6 max-w-[280px] w-full shadow-2xl">
             <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
                <LogOut size={24} />
             </div>
             <h3 className="text-sm font-black text-slate-800 mb-2 uppercase italic">Гарах</h3>
             <p className="text-[10px] text-slate-500 font-bold uppercase mb-6 leading-relaxed">Та системээс гарахдаа итгэлтэй байна уу?</p>
             <div className="flex gap-2">
-              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase hover:bg-slate-200 transition-colors">Болих</button>
-              <button onClick={handleLogout} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-200 hover:bg-red-600 transition-colors">
-                {isSubmitLoading ? "..." : "Гарах"}
-              </button>
+              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase">Болих</button>
+              <button onClick={handleLogout} className="flex-1 py-3 bg-red-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg shadow-red-200">Гарах</button>
             </div>
           </div>
         </div>
