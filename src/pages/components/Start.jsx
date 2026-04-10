@@ -53,14 +53,7 @@ export default function Start() {
       </nav>
 
       {/* Main Content Area */}
-      <div className="relative z-10 flex flex-col items-center justify-center flex-grow w-full max-w-5xl mx-auto px-6">
-        
-        {/* Branding Header */}
-        <header className="mb-16 opacity-40">
-          <div className="text-[10px] tracking-[0.8em] font-light uppercase border-b border-white/10 pb-2">
-            Mongolian Heritage • EST. 2026
-          </div>
-        </header>
+      <div className="relative z-10 flex flex-col items-center justify-evenly flex-grow w-full max-w-5xl mx-auto px-6">
 
         {/* Hero Section */}
         <main className="flex flex-col items-center text-center space-y-12">
@@ -71,14 +64,6 @@ export default function Start() {
                 мөчир нь бат
               </span>"
             </h2>
-
-            <div className="flex items-center justify-center gap-6">
-              <div className="h-px w-12 bg-gradient-to-r from-transparent to-white/20"></div>
-              <p className="text-[10px] sm:text-xs text-gray-400 font-light tracking-[0.4em] uppercase">
-                Удмын Түүх • Ирээдүйн Өв
-              </p>
-              <div className="h-px w-12 bg-gradient-to-l from-transparent to-white/20"></div>
-            </div>
           </div>
 
           {/* <p className="text-sm sm:text-base text-gray-400/80 max-w-md mx-auto font-light leading-relaxed tracking-wide px-4">
