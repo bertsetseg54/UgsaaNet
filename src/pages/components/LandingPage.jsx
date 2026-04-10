@@ -862,11 +862,11 @@ const activePath = useMemo(() => getSelectedPath(expandedParentId, profiles), [e
       </nav>
 
       {/* Modals - Padding багасгасан */}
-      {showQR && (
+     {showQR && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center z-[110] p-3 animate-in fade-in duration-300">
           <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] text-center relative animate-in zoom-in-95 duration-300">
             
-            {/* Хаах товч - Илүү тод */}
+            {/* Хаах товч */}
             <button 
               onClick={() => setShowQR(false)} 
               className="absolute top-5 right-5 p-2 bg-slate-50 hover:bg-red-50 hover:text-red-500 rounded-full text-slate-400 transition-colors"
@@ -874,35 +874,35 @@ const activePath = useMemo(() => getSelectedPath(expandedParentId, profiles), [e
               <X size={20} />
             </button>
 
-            {/* Гарчиг - Хэмжээг нэмсэн */}
+            {/* Гарчиг */}
             <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">
               Ургийн QR Код
             </h3>
 
-            {/* QR Код - 200px хүртэл томруулсан */}
+            {/* QR Код */}
             <div className="bg-white p-2 rounded-[2rem] border-[6px] border-slate-50 inline-block mb-4 shadow-inner">
               <QRCodeSVG value={familyId} size={200} level="H" />
             </div>
 
-            {/* Код хуулах хэсэг - Илүү тод, том */}
+            {/* Код хуулах хэсэг - Урт код багтаахаар сайжруулсан */}
             <div 
               onClick={handleCopy} 
-              className={`group rounded-2xl p-4 border transition-all cursor-pointer active:scale-95 ${
+              className={`group rounded-2xl p-4 border transition-all cursor-pointer active:scale-95 flex flex-col items-center justify-center min-h-[80px] ${
                 copied 
                   ? 'bg-green-50 border-green-100' 
                   : 'bg-slate-50 border-slate-100 hover:border-amber-200 hover:bg-white'
               }`}
             >
-              <p className={`text-[9px] font-black uppercase mb-1.5 tracking-wider ${
+              <p className={`text-[9px] font-black uppercase mb-2 tracking-wider ${
                 copied ? 'text-green-600' : 'text-slate-400'
               }`}>
                 {copied ? "Амжилттай хуулагдлаа" : "Код дээр дарж хуулна уу"}
               </p>
-              <div className="flex items-center justify-center gap-2">
-                <p className="text-xl font-black text-slate-900 font-mono tracking-widest leading-none">
-                  {familyId}
-                </p>
-              </div>
+              
+              {/* break-all нь хэт урт текстийг автоматаар тасална */}
+              <p className="text-base font-black text-slate-900 font-mono tracking-wider break-all leading-tight max-w-full">
+                {familyId}
+              </p>
             </div>
             
             <p className="mt-6 text-[10px] text-slate-400 font-medium">
